@@ -124,7 +124,7 @@
                             </div>
                         </div>
                         <a class="back-link" onclick="toggleVisibility('otpContainer', 'emailContainer')">Back to Email</a>
-                        
+
                         <div class=" login100-form text-center p-t-6">
                             Back to login page
                             <a class="txt2" href="authent?action=login">
@@ -139,33 +139,61 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
         <script>
-            function getOtpCode() {
-                toggleVisibility('emailContainer', 'otpContainer');
-            }
 
-            function toggleVisibility(hideId, showId) {
-                document.getElementById(hideId).classList.add('hidden');
-                document.getElementById(hideId).classList.remove('visible');
-                document.getElementById(showId).classList.remove('hidden');
-                document.getElementById(showId).classList.add('visible');
+                            function getOtpCode() {
+    var email = $('input[name="email"]').val();
+    if (validateEmail(email)) {
+        $.ajax({
+            url: 'authent?action=sendOtp',
+            type: 'POST',
+            dataType: 'json', // Expecting JSON response
+            data: { email: email },
+            success: function(response) {
+                if (response.status === "success") {
+                    toastr.success(response.message, '', {timeOut: 5000});
+                    toggleVisibility('emailContainer', 'otpContainer');
+                } else if (response.status === "error") {
+                    toastr.error(response.message, '', {timeOut: 5000});
+                }
+            },
+            error: function() {
+                toastr.error('An error occurred. Please try again.', '', {timeOut: 3000});
             }
+        });
+    } else {
+        toastr.warning('Please enter a valid email address.', '', {timeOut: 3000});
+    }
+}
 
-            function highlightContainer(containerId) {
-                document.getElementById(containerId).classList.add('highlight');
-                var otherContainerId = containerId === 'emailContainer' ? 'otpContainer' : 'emailContainer';
-                document.getElementById(otherContainerId).classList.add('dim');
-            }
+                            function validateEmail(email) {
+                                var re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                return re.test(email);
+                            }
 
-            function resetContainers() {
-                document.getElementById('emailContainer').classList.remove('highlight');
-                document.getElementById('otpContainer').classList.remove('highlight');
-                document.getElementById('emailContainer').classList.remove('dim');
-                document.getElementById('otpContainer').classList.remove('dim');
-            }
 
-            $(document).ready(function () {
-                toastr.options.closeButton = true;
-                toastr.options.progressBar = true;
+                            function toggleVisibility(hideId, showId) {
+                                document.getElementById(hideId).classList.add('hidden');
+                                document.getElementById(hideId).classList.remove('visible');
+                                document.getElementById(showId).classList.remove('hidden');
+                                document.getElementById(showId).classList.add('visible');
+                            }
+
+                            function highlightContainer(containerId) {
+                                document.getElementById(containerId).classList.add('highlight');
+                                var otherContainerId = containerId === 'emailContainer' ? 'otpContainer' : 'emailContainer';
+                                document.getElementById(otherContainerId).classList.add('dim');
+                            }
+
+                            function resetContainers() {
+                                document.getElementById('emailContainer').classList.remove('highlight');
+                                document.getElementById('otpContainer').classList.remove('highlight');
+                                document.getElementById('emailContainer').classList.remove('dim');
+                                document.getElementById('otpContainer').classList.remove('dim');
+                            }
+
+                            $(document).ready(function () {
+                                toastr.options.closeButton = true;
+                                toastr.options.progressBar = true;
             <%
                    List<String> successMessages = (List<String>) request.getAttribute("successMessages");
                    List<String> infoMessages = (List<String>) request.getAttribute("infoMessages");
@@ -175,28 +203,28 @@
 
             <% if (successMessages != null) { %>
             <% for (String message : successMessages) { %>
-                toastr.success('<%= message %>', '', {timeOut: 5000});
+                                toastr.success('<%= message %>', '', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (infoMessages != null) { %>
             <% for (String message : infoMessages) { %>
-                toastr.info('<%= message %>', '', {timeOut: 5000});
+                                toastr.info('<%= message %>', '', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (warningMessages != null) { %>
             <% for (String message : warningMessages) { %>
-                toastr.warning('<%= message %>', '', {timeOut: 5000});
+                                toastr.warning('<%= message %>', '', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (errorMessages != null) { %>
             <% for (String message : errorMessages) { %>
-                toastr.error('<%= message %>', '', {timeOut: 5000});
+                                toastr.error('<%= message %>', '', {timeOut: 5000});
             <% } %>
             <% } %>
-            });
+                            });
         </script>
 
         <!--===============================================================================================-->    
@@ -209,9 +237,9 @@
         <!--===============================================================================================-->
         <script src="assets/vendor/tilt/tilt.jquery.min.js"></script>
         <script>
-            $('.js-tilt').tilt({
-                scale: 1.1
-            })
+                            $('.js-tilt').tilt({
+                                scale: 1.1
+                            })
         </script>
         <!--===============================================================================================-->
         <script src="assets/js/main2.js"></script>

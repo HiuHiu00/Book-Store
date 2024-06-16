@@ -1,11 +1,15 @@
 package dal;
 
 import context.DBContext;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Random;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
@@ -77,9 +81,9 @@ public class CustomerDAO {
             ps.setString(1, email);
             ps.setString(2, password);
             ps.executeUpdate();
-        } catch (SQLException e){
+        } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error occurred while retrieving password by email", e);
-        } finally{
+        } finally {
             closeConnection(connection, ps, rs);
         }
     }
@@ -89,6 +93,22 @@ public class CustomerDAO {
 class TestCustomerDAO {
 
     public static void main(String[] args) {
+        String filePath = "web/views/EmailSenderForm.html";
+
+        StringBuilder content = new StringBuilder();
+
+        try ( BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                content.append(line).append("\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String updatedContent = content.toString().replace("XXXXXX", "123321");
+
+        System.out.println(updatedContent);
 
     }
 }

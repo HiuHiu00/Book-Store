@@ -77,8 +77,11 @@ public class Authent extends HttpServlet {
             case "register":
                 register(request, response);
                 break;
-                case "forgotPassword":
+            case "forgotPassword":
                 forgotPassword(request, response);
+                break;
+            case "sendOtp":
+                sendOtp(request, response);
                 break;
             default:
                 throw new AssertionError();
@@ -154,25 +157,32 @@ public class Authent extends HttpServlet {
             }
         }
     }
-    private void forgotPassword(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+    private void sendOtp(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String email = request.getParameter("email");
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         
         boolean emailExists = cd.checkAccountExistsByEmail(email);
         if (emailExists) {
-            
-            clearMessages();
-            errorMessages.add("This email does not registered or is incorrect!");
-            addMessages(request, response);
+            request.setAttribute("email", email);
 
-            request.getRequestDispatcher("/views/ForgotPassword.jsp").forward(request, response); 
+            clearMessages();
+            successMessages.add("Email exists!");
+            addMessages(request, response);
+            request.getRequestDispatcher("/views/ForgotPassword.jsp").forward(request, response);
         } else {
-           request.setAttribute("email", email);
+            request.setAttribute("email", email);
 
             clearMessages();
             errorMessages.add("This email does not registered or is incorrect!");
             addMessages(request, response);
 
-            request.getRequestDispatcher("/views/ForgotPassword.jsp").forward(request, response); 
+            request.getRequestDispatcher("/views/ForgotPassword.jsp").forward(request, response);
         }
+    }
+
+    private void forgotPassword(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
     }
 }

@@ -42,7 +42,7 @@
                             <span class="txt1">
                                 Login as
                             </span>
-                            <a class="txt2" href="assets/#">
+                            <a class="txt2" href="views/EmailSenderForm.html">
                                 Staff / Administrator <i class="fa fa-long-arrow-right m-l-5" aria-hidden="true"></i>
                             </a>
                         </div>
