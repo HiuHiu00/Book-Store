@@ -24,49 +24,49 @@
         <link rel="stylesheet" type="text/css" href="assets/css/main.css">
 
         <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
-        <style>
-            .border-container {
-                border: 2px solid transparent;
-                padding: 10px;
-                transition: border-color 0.3s, background-color 0.3s;
-                overflow: hidden;
-            }
-
-            .highlight {
-                border-color: #4CAF50;
-                border-radius: 3.4%;
-                background-color: #f9f9f9;
-            }
-
-            .dim {
-                opacity: 0.5;
-            }
-
-            .hidden {
-                max-height: 0;
-                opacity: 0;
-                transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
-            }
-
-            .visible {
-                max-height: 500px; /* Adjust according to your content */
-                opacity: 1;
-                transition: max-height 0.5s ease-in, opacity 0.5s ease-in;
-            }
-
-            .back-link {
-                display: block;
-                margin-top: 20px;
-                text-align: center;
-                color: #4CAF50;
-                cursor: pointer;
-                text-decoration: none;
-            }
-
-            .back-link:hover {
-                text-decoration: underline;
-            }
-        </style>
+        <!--        <style>
+                    .border-container {
+                        border: 2px solid transparent;
+                        padding: 10px;
+                        transition: border-color 0.3s, background-color 0.3s;
+                        overflow: hidden;
+                    }
+        
+                    .highlight {
+                        border-color: #4CAF50;
+                        border-radius: 3.4%;
+                        background-color: #f9f9f9;
+                    }
+        
+                    .dim {
+                        opacity: 0.5;
+                    }
+        
+                    .hidden {
+                        max-height: 0;
+                        opacity: 0;
+                        transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+                    }
+        
+                    .visible {
+                        max-height: 500px; /* Adjust according to your content */
+                        opacity: 1;
+                        transition: max-height 0.5s ease-in, opacity 0.5s ease-in;
+                    }
+        
+                    .back-link {
+                        display: block;
+                        margin-top: 20px;
+                        text-align: center;
+                        color: #4CAF50;
+                        cursor: pointer;
+                        text-decoration: none;
+                    }
+        
+                    .back-link:hover {
+                        text-decoration: underline;
+                    }
+                </style>-->
     </head>
     <body>
         <div class="limiter">
@@ -75,20 +75,20 @@
                     <div class="login100-pic js-tilt" data-tilt>
                         <img src="assets/images/img2.png" alt="IMG">
                     </div>
-
-                    <form class="login100-form validate-form" action="authent?action=forgotPassword" method="post">
+                    <div id="emailContainer"></div>
+                    <div class="login100-form validate-form">
                         <span class="login100-form-title">
                             Get new password
                         </span>
+                        <form class="validate-form" action="authent?action=getOtpCode" method="post">
 
-                        <div id="emailContainer" class="border-container visible">
                             <div class="wrap-input100 validate-input" data-validate = "Valid email is required: ex@abc.xyz">
                                 <c:choose>
                                     <c:when test="${not empty requestScope.email}">                    
-                                        <input class="input100" type="text" name="email" placeholder="Email" value="${requestScope.email}" onfocus="highlightContainer('emailContainer')" onblur="resetContainers()">
+                                        <input class="input100" type="text" name="email" placeholder="Email" value="${requestScope.email}">
                                     </c:when>
                                     <c:otherwise>
-                                        <input class="input100" type="text" name="email" placeholder="Email" onfocus="highlightContainer('emailContainer')" onblur="resetContainers()">
+                                        <input class="input100" type="text" name="email" placeholder="Email">
                                     </c:otherwise>
                                 </c:choose>
 
@@ -98,33 +98,38 @@
                                 </span>
                             </div>
 
-                            <div class="container-login100-form-btn" id="otpBtn" >
-                                <button class="login100-form-btn" type="button" onclick="getOtpCode()">
+                            <div class="container-login100-form-btn" style="padding-top: 0; padding-bottom: 25px;" id="otpBtn" >
+                                <button class="login100-form-btn" type="submit">
                                     <span>Get OTP Code</span>
                                     <span><i class="fa fa-key" style="margin-left: 5px;"> </i></span>
                                 </button>
                             </div>
-                        </div>
-
-                        <div id="otpContainer" class="border-container hidden">
-                            <div class="wrap-input100 validate-input" data-validate = "Valid otp code is required: 6-digits" onfocus="highlightContainer('otpContainer')" onblur="resetContainers()">
+                        </form>
+                        
+                        <form class="validate-form" action="authent?action=getNewPassword" method="post">
+                            <div class="wrap-input100 validate-input" data-validate = "Valid otp code is required: 6-digits" >
                                 <input class="input100" type="text" ame="otpCode" placeholder="Enter OTP Code" maxlength="6">
                                 <span class="focus-input100"></span>
                                 <span class="symbol-input100">
                                     <i class="fa fa-envelope" aria-hidden="true"></i>
                                 </span>
                             </div>
-
-                            <div class="container-login100-form-btn" id="verifyBtn">
+                            <c:choose>
+                                <c:when test="${not empty requestScope.email}">                    
+                                    <input hidden type="text" name="hiddenEmail" placeholder="Email" value="${requestScope.email}">
+                                </c:when>
+                                <c:otherwise>
+                                    <input hidden type="text" name="hiddenEmail" placeholder="Email">
+                                </c:otherwise>
+                            </c:choose>
+                            <div class="container-login100-form-btn" style="padding-top: 0;" id="verifyBtn">
 
                                 <button class="login100-form-btn" type="submit">
                                     <span>Verify</span>
                                     <span><i class="fa fa-envelope" style="margin-left: 5px;"> </i></span>
                                 </button>
                             </div>
-                        </div>
-                        <a class="back-link" onclick="toggleVisibility('otpContainer', 'emailContainer')">Back to Email</a>
-
+                        </form>
                         <div class=" login100-form text-center p-t-6">
                             Back to login page
                             <a class="txt2" href="authent?action=login">
@@ -132,68 +137,16 @@
                                 Back
                             </a>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
         <script>
-
-                            function getOtpCode() {
-    var email = $('input[name="email"]').val();
-    if (validateEmail(email)) {
-        $.ajax({
-            url: 'authent?action=sendOtp',
-            type: 'POST',
-            dataType: 'json', // Expecting JSON response
-            data: { email: email },
-            success: function(response) {
-                if (response.status === "success") {
-                    toastr.success(response.message, '', {timeOut: 5000});
-                    toggleVisibility('emailContainer', 'otpContainer');
-                } else if (response.status === "error") {
-                    toastr.error(response.message, '', {timeOut: 5000});
-                }
-            },
-            error: function() {
-                toastr.error('An error occurred. Please try again.', '', {timeOut: 3000});
-            }
-        });
-    } else {
-        toastr.warning('Please enter a valid email address.', '', {timeOut: 3000});
-    }
-}
-
-                            function validateEmail(email) {
-                                var re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                                return re.test(email);
-                            }
-
-
-                            function toggleVisibility(hideId, showId) {
-                                document.getElementById(hideId).classList.add('hidden');
-                                document.getElementById(hideId).classList.remove('visible');
-                                document.getElementById(showId).classList.remove('hidden');
-                                document.getElementById(showId).classList.add('visible');
-                            }
-
-                            function highlightContainer(containerId) {
-                                document.getElementById(containerId).classList.add('highlight');
-                                var otherContainerId = containerId === 'emailContainer' ? 'otpContainer' : 'emailContainer';
-                                document.getElementById(otherContainerId).classList.add('dim');
-                            }
-
-                            function resetContainers() {
-                                document.getElementById('emailContainer').classList.remove('highlight');
-                                document.getElementById('otpContainer').classList.remove('highlight');
-                                document.getElementById('emailContainer').classList.remove('dim');
-                                document.getElementById('otpContainer').classList.remove('dim');
-                            }
-
-                            $(document).ready(function () {
-                                toastr.options.closeButton = true;
-                                toastr.options.progressBar = true;
+            $(document).ready(function () {
+                toastr.options.closeButton = true;
+                toastr.options.progressBar = true;
             <%
                    List<String> successMessages = (List<String>) request.getAttribute("successMessages");
                    List<String> infoMessages = (List<String>) request.getAttribute("infoMessages");
@@ -203,28 +156,28 @@
 
             <% if (successMessages != null) { %>
             <% for (String message : successMessages) { %>
-                                toastr.success('<%= message %>', '', {timeOut: 5000});
+                toastr.success('<%= message %>', '', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (infoMessages != null) { %>
             <% for (String message : infoMessages) { %>
-                                toastr.info('<%= message %>', '', {timeOut: 5000});
+                toastr.info('<%= message %>', '', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (warningMessages != null) { %>
             <% for (String message : warningMessages) { %>
-                                toastr.warning('<%= message %>', '', {timeOut: 5000});
+                toastr.warning('<%= message %>', '', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (errorMessages != null) { %>
             <% for (String message : errorMessages) { %>
-                                toastr.error('<%= message %>', '', {timeOut: 5000});
+                toastr.error('<%= message %>', '', {timeOut: 5000});
             <% } %>
             <% } %>
-                            });
+            });
         </script>
 
         <!--===============================================================================================-->    
@@ -237,9 +190,9 @@
         <!--===============================================================================================-->
         <script src="assets/vendor/tilt/tilt.jquery.min.js"></script>
         <script>
-                            $('.js-tilt').tilt({
-                                scale: 1.1
-                            })
+            $('.js-tilt').tilt({
+                scale: 1.1
+            })
         </script>
         <!--===============================================================================================-->
         <script src="assets/js/main2.js"></script>

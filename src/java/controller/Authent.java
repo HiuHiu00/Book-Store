@@ -4,8 +4,10 @@
  */
 package controller;
 
+import EmailSender.EmailSender;
 import dal.CustomerDAO;
 import entity.Account;
+import jakarta.servlet.ServletContext;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -15,6 +17,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -24,11 +29,13 @@ import java.util.List;
 public class Authent extends HttpServlet {
 
     CustomerDAO cd = new CustomerDAO();
+    EmailSender es = new EmailSender();
 
     List<String> successMessages = new ArrayList<>();
     List<String> infoMessages = new ArrayList<>();
     List<String> warningMessages = new ArrayList<>();
     List<String> errorMessages = new ArrayList<>();
+    private static final long serialVersionUID = 1L;
 
     private void clearMessages() {
         successMessages.clear();
@@ -77,10 +84,10 @@ public class Authent extends HttpServlet {
             case "register":
                 register(request, response);
                 break;
-            case "forgotPassword":
-                forgotPassword(request, response);
+            case "getNewPassword":
+                getNewPassword(request, response);
                 break;
-            case "sendOtp":
+            case "getOtpCode":
                 sendOtp(request, response);
                 break;
             default:
@@ -160,29 +167,48 @@ public class Authent extends HttpServlet {
 
     private void sendOtp(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String email = request.getParameter("email");
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        
+
         boolean emailExists = cd.checkAccountExistsByEmail(email);
+
         if (emailExists) {
+            String otp = cd.generateRandomOTP();
+            cd.addOTPForAccountByEmail(otp, email);
+
+            ServletContext context = getServletContext();
+            ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+            scheduler.schedule(() -> {
+                es.sendMsgEmail(context, email, "Your New OTP Code", "ocType");
+            }, 1, TimeUnit.SECONDS);
+
             request.setAttribute("email", email);
 
             clearMessages();
-            successMessages.add("Email exists!");
+            successMessages.add("Your OTP Code was sent successfully to email: " + email);
             addMessages(request, response);
             request.getRequestDispatcher("/views/ForgotPassword.jsp").forward(request, response);
         } else {
             request.setAttribute("email", email);
 
             clearMessages();
-            errorMessages.add("This email does not registered or is incorrect!");
+            errorMessages.add("This email does not registered yet or is incorrect!");
             addMessages(request, response);
 
             request.getRequestDispatcher("/views/ForgotPassword.jsp").forward(request, response);
         }
     }
 
-    private void forgotPassword(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    private void getNewPassword(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String email = request.getParameter("email");
 
+        ServletContext context = getServletContext();
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.schedule(() -> {
+            es.sendMsgEmail(context, email, "Your New Password", "pType");
+        }, 1, TimeUnit.SECONDS);
+
+        clearMessages();
+        successMessages.add("Your password was sent successfully to email: " + email);
+        addMessages(request, response);
+        request.getRequestDispatcher("/views/Login.jsp").forward(request, response);
     }
 }

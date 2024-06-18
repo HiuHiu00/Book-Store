@@ -12,4 +12,5 @@ public class Account {
     private String Password;
     private String Email;
     private int RoleID;
+    private String VerifyCode;
 }

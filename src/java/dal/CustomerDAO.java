@@ -88,27 +88,42 @@ public class CustomerDAO {
         }
     }
 
+    public String generateRandomOTP() {
+        int otpLength = 6;
+        String digits = "0123456789";
+        Random random = new Random();
+        StringBuilder otp = new StringBuilder(otpLength);
+
+        for (int i = 0; i < otpLength; i++) {
+            otp.append(digits.charAt(random.nextInt(digits.length())));
+        }
+        return otp.toString();
+    }
+
+    public void addOTPForAccountByEmail(String code, String email) {
+        try {
+            connection = DBContext.getConnection();
+            String query = "UPDATE Account Set VerifyCode = ? Where Email = ?";
+            ps = connection.prepareStatement(query);
+            ps.setString(1, code);
+            ps.setString(2, email);
+            ps.executeUpdate();
+
+            //Schedule a task to delete the OTP associated with the given Email after a specified delay.
+            //scheduleTaskToDeleteOTP(email, 5);
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error occurred while add otp code by email", e);
+        } finally {
+            closeConnection(connection, ps, rs);
+        }
+    }
 }
 
 class TestCustomerDAO {
 
     public static void main(String[] args) {
-        String filePath = "web/views/EmailSenderForm.html";
-
-        StringBuilder content = new StringBuilder();
-
-        try ( BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                content.append(line).append("\n");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        String updatedContent = content.toString().replace("XXXXXX", "123321");
-
-        System.out.println(updatedContent);
+        CustomerDAO  cd = new CustomerDAO();
+        cd.addOTPForAccountByEmail("123456", "a@a.a");
 
     }
 }
