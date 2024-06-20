@@ -77,7 +77,7 @@
                             </div>
                         </form>
 
-                        <c:if test="${not empty requestScope.email}">
+                        <c:if test="${not empty sessionScope.email}">
                             <form class="validate-form form-password" action="authent?action=getNewPassword" method="post">
                                 <div class="wrap-input100 validate-input" data-validate="Valid otp code is required: 6-digits">
                                     <input class="input100" type="text" name="otpCode" placeholder="Enter OTP Code" maxlength="6">

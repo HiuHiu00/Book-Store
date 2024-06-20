@@ -11,6 +11,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -153,7 +154,11 @@ public class Authent extends HttpServlet {
 //                es.sendMsgEmail(context, email, "Your New OTP Code", "ocType");
 //            }, 1, TimeUnit.SECONDS);
             request.setAttribute("email", email);
-
+            
+            long expirationTime = System.currentTimeMillis() + 5 * 60 * 1000;
+            HttpSession session = request.getSession();
+            session.setAttribute("OTPCodeActived", expirationTime);
+            
             clearMessages();
             successMessages.add("Your OTP Code was sent successfully to email: " + email);
             addMessages(request, response);
