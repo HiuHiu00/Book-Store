@@ -29,7 +29,7 @@ public class EmailSender {
     private final String FROM_EMAIL = "clothingshoponlineg1se1754@gmail.com";
     private final String EMAIL_PASSWORD = "pizwgjrviipmttyx";
 
-    public void sendMsgEmail(ServletContext context, String toEmail, String subject, String type) {
+    public void sendMsgEmail(ServletContext context, String toEmail, String subject, String type, String codeIsSent) {
         Properties props = System.getProperties();
         props.put("mail.smtp.host", "smtp.gmail.com");
         props.put("mail.smtp.user", FROM_EMAIL);
@@ -47,7 +47,7 @@ public class EmailSender {
             message.setSubject(subject);
             //message.setText(msg);
 
-            String htmlContent = getEmailSenderFormat(context, toEmail, type);
+            String htmlContent = getEmailSenderFormat(context, toEmail, type, codeIsSent);
             message.setContent(htmlContent, "text/html");
             Transport transport = session.getTransport("smtp");
             transport.connect("smtp.gmail.com", FROM_EMAIL, EMAIL_PASSWORD);
@@ -69,12 +69,12 @@ public class EmailSender {
 
     }
 
-    public String getEmailSenderFormat(ServletContext context, String toEmail, String type) {
+    public String getEmailSenderFormat(ServletContext context, String toEmail, String type, String codeIsSent) {
         String filePath = context.getRealPath("views/EmailSenderForm.html");
 
         StringBuilder content = new StringBuilder();
 
-        try ( BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = br.readLine()) != null) {
                 content.append(line).append("\n");
@@ -82,18 +82,18 @@ public class EmailSender {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        String updatedContent ="";
+        String updatedContent = "";
         if (type.equals("ocType")) {
-             updatedContent =replaceAttributeForOTPCode(content.toString(), toEmail);
+            updatedContent = replaceAttributeForOTPCode(content.toString(), toEmail, codeIsSent);
         }
-        if (type.equals("ocType")) {
-             updatedContent =replaceAttributeForNewPassword(content.toString(), toEmail);
+        if (type.equals("npType")) {
+            updatedContent = replaceAttributeForNewPassword(content.toString(), toEmail, codeIsSent);
         }
         return updatedContent;
     }
 
-    public String replaceAttributeForOTPCode(String content, String toEmail) {
-        String updatedContent = content.replace("XXXXXX", "123321");
+    public String replaceAttributeForOTPCode(String content, String toEmail, String otpCode) {
+        String updatedContent = content.replace("XXXXXX", otpCode);
 
         Date now = new Date();
         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
@@ -104,15 +104,15 @@ public class EmailSender {
         updatedContent = updatedContent.replace("dateSentForm", date);
 
         updatedContent = updatedContent.replace("recipient's_email", toEmail);
-
-        updatedContent = updatedContent.replace("getOtpNotification", " Thank you for choosing MyBookStore. Use the following OTP to complete the procedure to get your new password. OTP is valid for\n"
+        updatedContent = updatedContent.replace("getFormTitle", "Your OTP Code");
+        updatedContent = updatedContent.replace("getNotification", " Thank you for choosing MyBookStore. If you did not request this OTP, please ignore this message. Use the following OTP to complete the procedure to get your new password. Due to security issues, OTP is valid for\n"
                 + "                            <span style=\"font-weight: 600; color: #1f1f1f;\">5 minutes</span>.\n"
-                + "                            Do not share this code with others.");
+                + "                            This OTP is valid for a single use and should not be shared with anyone. Do not share this otp with others.");
         return updatedContent;
     }
-    
-    public String replaceAttributeForNewPassword(String content, String toEmail) {
-        String updatedContent = content.replace("XXXXXX", "123321");
+
+    public String replaceAttributeForNewPassword(String content, String toEmail, String nPassword) {
+        String updatedContent = content.replace("XXXXXX", nPassword);
 
         Date now = new Date();
         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
@@ -123,10 +123,8 @@ public class EmailSender {
         updatedContent = updatedContent.replace("dateSentForm", date);
 
         updatedContent = updatedContent.replace("recipient's_email", toEmail);
-
-        updatedContent = updatedContent.replace("getOtpNotification", " Thank you for choosing MyBookStore. Use the following OTP to complete the procedure to get your new password. OTP is valid for\n"
-                + "                            <span style=\"font-weight: 600; color: #1f1f1f;\">5 minutes</span>.\n"
-                + "                            Do not share this code with others.");
+        updatedContent = updatedContent.replace("getFormTitle", "Your New Password");
+        updatedContent = updatedContent.replace("geNotification", " Thank you for choosing MyBookStore. If you did not request this, please ignore this message. This Password is valid for a single use and should not be shared with anyone.");
         return updatedContent;
     }
 }

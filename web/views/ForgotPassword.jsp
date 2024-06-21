@@ -77,7 +77,7 @@
                             </div>
                         </form>
 
-                        <c:if test="${not empty sessionScope.email}">
+                        <c:if test="${not empty requestScope.email}">
                             <form class="validate-form form-password" action="authent?action=getNewPassword" method="post">
                                 <div class="wrap-input100 validate-input" data-validate="Valid otp code is required: 6-digits">
                                     <input class="input100" type="text" name="otpCode" placeholder="Enter OTP Code" maxlength="6">
@@ -92,6 +92,7 @@
                                         <span><i class="fa fa-envelope" style="margin-left: 5px;"></i></span>
                                     </button>
                                 </div>
+                                <input name="hiddenEmail" type="text" value="${requestScope.email}">
                             </form>
                         </c:if>
 
@@ -130,7 +131,8 @@
             }
 
             window.onload = function () {
-                let countdownDuration = 3, display = document.querySelector('#countdown');
+                 let countdownDuration = ${countdownDuration};
+                let display = document.querySelector('#countdown');
                 startCountdown(countdownDuration, display);
             };
 
