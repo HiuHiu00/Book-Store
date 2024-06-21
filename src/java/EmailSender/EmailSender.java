@@ -124,7 +124,7 @@ public class EmailSender {
 
         updatedContent = updatedContent.replace("recipient's_email", toEmail);
         updatedContent = updatedContent.replace("getFormTitle", "Your New Password");
-        updatedContent = updatedContent.replace("geNotification", " Thank you for choosing MyBookStore. If you did not request this, please ignore this message. This Password is valid for a single use and should not be shared with anyone.");
+        updatedContent = updatedContent.replace("getNotification", " Thank you for choosing MyBookStore. If you did not request this, please ignore this message. This Password is valid for a single use and should not be shared with anyone.");
         return updatedContent;
     }
 }

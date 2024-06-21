@@ -47,10 +47,10 @@
                             <div class="wrap-input100 validate-input" data-validate="Valid email is required: ex@abc.xyz">
                                 <c:choose>
                                     <c:when test="${not empty requestScope.email}">
-                                        <input class="input100" type="text" name="email" placeholder="Email" value="${requestScope.email}">
+                                        <input id="email" class="input100" type="text" name="email" placeholder="Email" value="${requestScope.email}">
                                     </c:when>
                                     <c:otherwise>
-                                        <input class="input100" type="text" name="email" placeholder="Email">
+                                        <input id="email" class="input100" type="text" name="email" placeholder="Email">
                                     </c:otherwise>
                                 </c:choose>
                                 <span class="focus-input100"></span>
@@ -92,7 +92,7 @@
                                         <span><i class="fa fa-envelope" style="margin-left: 5px;"></i></span>
                                     </button>
                                 </div>
-                                <input name="hiddenEmail" type="text" value="${requestScope.email}">
+                                <input id="hiddenEmail" name="hiddenEmail" type="text" value="" hidden>
                             </form>
                         </c:if>
 
@@ -131,10 +131,16 @@
             }
 
             window.onload = function () {
-                 let countdownDuration = ${countdownDuration};
+                let countdownDuration = ${countdownDuration};
                 let display = document.querySelector('#countdown');
                 startCountdown(countdownDuration, display);
             };
+
+            document.getElementById('email').addEventListener('input', syncHiddenEmail);
+            window.onload = syncHiddenEmail;
+            function syncHiddenEmail() {
+                document.getElementById('hiddenEmail').value = document.getElementById('email').value;
+            }
 
             $(document).ready(function () {
                 toastr.options.closeButton = true;

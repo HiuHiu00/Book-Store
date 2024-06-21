@@ -37,7 +37,7 @@ public class Authent extends HttpServlet {
     private Map<String, CountdownInfo> emailToCountdownMap = new HashMap<>();
 
     /**
-     * Method description: Clears all message lists.
+     * Clears all message lists.
      */
     private void clearMessages() {
         successMessages.clear();
@@ -47,9 +47,9 @@ public class Authent extends HttpServlet {
     }
 
     /**
-     * Method description: Adds message lists as attributes to the request.
+     * Adds message lists as attributes to the request.
      *
-     * @param request - The HttpServletRequest.
+     * @param request The HttpServletRequest.
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
@@ -63,8 +63,8 @@ public class Authent extends HttpServlet {
     /**
      * Handles the HTTP <code>GET</code> method.
      *
-     * @param request - The HttpServletRequest.
-     * @param response - The HttpServletResponse.
+     * @param request The HttpServletRequest.
+     * @param response The HttpServletResponse.
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
@@ -89,8 +89,8 @@ public class Authent extends HttpServlet {
     /**
      * Handles the HTTP <code>Post</code> method.
      *
-     * @param request - The HttpServletRequest.
-     * @param response - The HttpServletResponse.
+     * @param request The HttpServletRequest.
+     * @param response The HttpServletResponse.
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
@@ -113,18 +113,20 @@ public class Authent extends HttpServlet {
     }
 
     /**
-     * Method description: Handles the <code>login</code> process.
+     * Handles the <code>login</code> process.
      *
-     * @param request - The HttpServletRequest.
-     * @param response - The HttpServletResponse.
+     * @param request The HttpServletRequest.
+     * @param response The HttpServletResponse.
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
     private void login(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String email = request.getParameter("email");
         String password = request.getParameter("pass");
+        
         boolean emailExists = cd.checkAccountExistsByEmail(email);
         String passwordCheck = cd.getPasswordByEmail(email);
+        
         clearMessages();
 
         if (emailExists) {
@@ -152,10 +154,10 @@ public class Authent extends HttpServlet {
     }
 
     /**
-     * Method description: Handles the <code>registration</code> process.
+     * Handles the <code>registration</code> process.
      *
-     * @param request - The HttpServletRequest.
-     * @param response - The HttpServletResponse.
+     * @param request The HttpServletRequest.
+     * @param response The HttpServletResponse.
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
@@ -163,8 +165,11 @@ public class Authent extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("passw");
         String cpassword = request.getParameter("confirmPass");
+        
         clearMessages();
+        
         boolean emailExists = cd.checkAccountExistsByEmail(email);
+        
         if (emailExists) {
             request.setAttribute("email", email);
             request.setAttribute("password", password);
@@ -195,15 +200,14 @@ public class Authent extends HttpServlet {
     }
 
     /**
-     * Method description:
+     * Sends an OTP to the user's email for password recovery.
      *
-     * @param request - The HttpServletRequest.
-     * @param response - The HttpServletResponse.
+     * @param request The HttpServletRequest.
+     * @param response The HttpServletResponse.
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
     private void sendOtp(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
         String email = request.getParameter("email");
 
         boolean emailExists = cd.checkAccountExistsByEmail(email);
@@ -211,9 +215,8 @@ public class Authent extends HttpServlet {
         clearMessages();
 
         if (emailExists) {
-
-            CountdownInfo countdownInfo = emailToCountdownMap.get(email);
-            if (countdownInfo != null && countdownInfo.isValid()) {
+            CountdownInfo countdownInfo = emailToCountdownMap.get(email);      
+            if (countdownInfo != null && countdownInfo.isValid()) {         
                 long currentTime = System.currentTimeMillis();
                 long elapsedTime = (currentTime - countdownInfo.getStartTime()) / 1000;
                 int remainingTime = countdownInfo.getDuration() - (int) elapsedTime;
@@ -221,12 +224,14 @@ public class Authent extends HttpServlet {
                 if (remainingTime <= 0) {
                     remainingTime = 0;
                 }
+                
                 warningMessages.add("You must wait for the previous otp code is turn to end before you can do it again");
+                
                 request.setAttribute("countdownDuration", remainingTime);
             } else {
-                String otp = cd.generateRandomOTP();
-                
+                String otp = cd.generateRandomOTP(6);
                 cd.addOTPForAccountByEmail(otp, email);
+                
                 ServletContext context = getServletContext();
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
                 scheduler.schedule(() -> {
@@ -236,13 +241,16 @@ public class Authent extends HttpServlet {
                 int countdownDuration = 30;
                 countdownInfo = new CountdownInfo(countdownDuration, System.currentTimeMillis());
                 emailToCountdownMap.put(email, countdownInfo);
-                successMessages.add("Your OTP Code was sent successfully to email: " + email);
+                
                 request.setAttribute("countdownDuration", countdownDuration);
+                
+                successMessages.add("Your OTP Code was sent successfully to email: " + email);
             }
 
             request.setAttribute("email", email);
 
             addMessages(request);
+            
             request.getRequestDispatcher("/views/ForgotPassword.jsp").forward(request, response);
         } else {
             request.setAttribute("email", email);
@@ -255,7 +263,7 @@ public class Authent extends HttpServlet {
     }
 
     /**
-     * Method description:
+     * Handles the process of setting a new password after OTP verification.
      *
      * @param request
      * @param response
@@ -263,16 +271,54 @@ public class Authent extends HttpServlet {
      * @throws IOException
      */
     private void getNewPassword(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String email = request.getParameter("email");
+        String email = request.getParameter("hiddenEmail");
+        String otp = request.getParameter("otpCode");
 
-//        ServletContext context = getServletContext();
-//        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-//        scheduler.schedule(() -> {
-//            es.sendMsgEmail(context, email, "Your New Password", "pType");
-//        }, 1, TimeUnit.SECONDS);
+        boolean emailExists = cd.checkAccountExistsByEmail(email);
+
         clearMessages();
-        successMessages.add("Your password was sent successfully to email: " + email);
-        addMessages(request);
-        request.getRequestDispatcher("/views/Login.jsp").forward(request, response);
+
+        if (emailExists) {
+            String otpMatch = cd.getVerifyCodeByEmail(email);
+            
+            if (otp.equals(otpMatch) && otpMatch != null) {   
+                String newPassword = cd.generateRandomPassword(8);
+                cd.addNewPasswordForAccountByEmail(newPassword, email);
+                
+                ServletContext context = getServletContext();
+                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                scheduler.schedule(() -> {
+                    es.sendMsgEmail(context, email, "Your New Password", "npType", newPassword);
+                }, 1, TimeUnit.SECONDS);
+                
+                successMessages.add("Your password was sent successfully to email: " + email + otp);
+                addMessages(request);
+                
+                request.getRequestDispatcher("/views/Login.jsp").forward(request, response);
+            } else {        
+                CountdownInfo countdownInfo = emailToCountdownMap.get(email);
+                long currentTime = System.currentTimeMillis();
+                long elapsedTime = (currentTime - countdownInfo.getStartTime()) / 1000;
+                int remainingTime = countdownInfo.getDuration() - (int) elapsedTime;
+                if (remainingTime <= 0) {
+                    remainingTime = 0;
+                }
+                
+                request.setAttribute("countdownDuration", remainingTime);
+                
+                errorMessages.add("Incorrect code not matching, please check it again!");
+                addMessages(request);
+                
+                request.getRequestDispatcher("/views/ForgotPassword.jsp").forward(request, response);
+            }
+        } else {
+            request.setAttribute("email", email);
+
+            errorMessages.add("This email does not registered yet or is incorrect!");
+            addMessages(request);
+
+            request.getRequestDispatcher("/views/ForgotPassword.jsp").forward(request, response);
+        }
     }
+
 }
