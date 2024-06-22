@@ -3,6 +3,7 @@ package controller;
 import EmailSender.EmailSender;
 import dao.CustomerDAO;
 import EmailSender.CountdownInfo;
+import dao.AdminDAO;
 import entity.Account;
 import jakarta.servlet.ServletContext;
 import java.io.IOException;
@@ -24,16 +25,18 @@ import java.util.concurrent.TimeUnit;
 @WebServlet(name = "Authent", urlPatterns = {"/authent"})
 public class Authent extends HttpServlet {
 
-    //
+    // Instances for various operations
     CustomerDAO cd = new CustomerDAO();
+    AdminDAO ad = new AdminDAO();
     EmailSender es = new EmailSender();
     // Lists to store different types of messages
     List<String> successMessages = new ArrayList<>();
     List<String> infoMessages = new ArrayList<>();
     List<String> warningMessages = new ArrayList<>();
     List<String> errorMessages = new ArrayList<>();
-
+    // A constant for serialization purposes
     private static final long serialVersionUID = 1L;
+    // A map to store countdown information associated with email addresses
     private Map<String, CountdownInfo> emailToCountdownMap = new HashMap<>();
 
     /**
@@ -80,6 +83,8 @@ public class Authent extends HttpServlet {
                 "views/Register.jsp";
             case "forgotPassword" ->
                 "views/ForgotPassword.jsp";
+            case "adminLogin" ->
+                "views/AdminLogin.jsp";
             default ->
                 "index.html";
         };
@@ -107,6 +112,8 @@ public class Authent extends HttpServlet {
                 getNewPassword(request, response);
             case "getOtpCode" ->
                 sendOtp(request, response);
+            case "adminLogin" ->
+                adminLogin(request, response);
             default ->
                 throw new AssertionError();
         }
@@ -123,10 +130,10 @@ public class Authent extends HttpServlet {
     private void login(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String email = request.getParameter("email");
         String password = request.getParameter("pass");
-        
+
         boolean emailExists = cd.checkAccountExistsByEmail(email);
         String passwordCheck = cd.getPasswordByEmail(email);
-        
+
         clearMessages();
 
         if (emailExists) {
@@ -138,7 +145,7 @@ public class Authent extends HttpServlet {
 
                 request.getRequestDispatcher("/views/Login.jsp").forward(request, response);
             } else {
-                successMessages.add("Correct email and password.");
+                successMessages.add("Loggin success.");
                 addMessages(request);
 
                 request.getRequestDispatcher("/views/Login.jsp").forward(request, response);
@@ -151,6 +158,66 @@ public class Authent extends HttpServlet {
 
             request.getRequestDispatcher("/views/Login.jsp").forward(request, response);
         }
+
+    }
+
+    /**
+     * Handles the <code>login</code> process.
+     *
+     * @param request The HttpServletRequest.
+     * @param response The HttpServletResponse.
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    private void adminLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String email = request.getParameter("email");
+        String password = request.getParameter("pass");
+        String rKey = request.getParameter("rkey");
+
+        boolean emailExists = ad.checkAccountExistsByEmail(email);
+        String passwordCheck = ad.getPasswordByEmail(email);
+        String rKeyCheck = ad.getRoleKeyByEmail(email);
+        int accountRole = ad.getAccountRoleIDByEmail(email);
+        clearMessages();
+
+        if (emailExists && accountRole > 0 && accountRole != 1) {
+            if (password == null ? passwordCheck != null : !password.equals(passwordCheck)) {
+                request.setAttribute("email", email);
+
+                errorMessages.add("Your email or password are not correct!");
+                addMessages(request);
+
+                request.getRequestDispatcher("/views/AdminLogin.jsp").forward(request, response);
+            } else {
+                if (rKey == null ? rKeyCheck != null : !rKey.equals(rKeyCheck)) {
+                    request.setAttribute("email", email);
+                    request.setAttribute("password", password);
+
+                    errorMessages.add("Incorrect Login Key for admin/staff");
+                    addMessages(request);
+
+                    request.getRequestDispatcher("/views/AdminLogin.jsp").forward(request, response);
+                } else {
+                    if (accountRole == 2) {
+                        successMessages.add("Loggin as Admin success.");
+                    }
+                    if (accountRole == 3) {
+                        successMessages.add("Loggin as Staff success.");
+                    }
+                    addMessages(request);
+
+                    request.getRequestDispatcher("/views/AdminLogin.jsp").forward(request, response);
+                }
+            }
+        } else {
+            request.setAttribute("email", email);
+
+            errorMessages.add("Your email is incorrect or not have permission to login as Admin/Staff!");
+            addMessages(request);
+
+            request.getRequestDispatcher("/views/AdminLogin.jsp").forward(request, response);
+        }
+
     }
 
     /**
@@ -165,11 +232,11 @@ public class Authent extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("passw");
         String cpassword = request.getParameter("confirmPass");
-        
+
         clearMessages();
-        
+
         boolean emailExists = cd.checkAccountExistsByEmail(email);
-        
+
         if (emailExists) {
             request.setAttribute("email", email);
             request.setAttribute("password", password);
@@ -215,8 +282,8 @@ public class Authent extends HttpServlet {
         clearMessages();
 
         if (emailExists) {
-            CountdownInfo countdownInfo = emailToCountdownMap.get(email);      
-            if (countdownInfo != null && countdownInfo.isValid()) {         
+            CountdownInfo countdownInfo = emailToCountdownMap.get(email);
+            if (countdownInfo != null && countdownInfo.isValid()) {
                 long currentTime = System.currentTimeMillis();
                 long elapsedTime = (currentTime - countdownInfo.getStartTime()) / 1000;
                 int remainingTime = countdownInfo.getDuration() - (int) elapsedTime;
@@ -224,14 +291,14 @@ public class Authent extends HttpServlet {
                 if (remainingTime <= 0) {
                     remainingTime = 0;
                 }
-                
+
                 warningMessages.add("You must wait for the previous otp code is turn to end before you can do it again");
-                
+
                 request.setAttribute("countdownDuration", remainingTime);
             } else {
                 String otp = cd.generateRandomOTP(6);
                 cd.addOTPForAccountByEmail(otp, email);
-                
+
                 ServletContext context = getServletContext();
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
                 scheduler.schedule(() -> {
@@ -241,16 +308,16 @@ public class Authent extends HttpServlet {
                 int countdownDuration = 30;
                 countdownInfo = new CountdownInfo(countdownDuration, System.currentTimeMillis());
                 emailToCountdownMap.put(email, countdownInfo);
-                
+
                 request.setAttribute("countdownDuration", countdownDuration);
-                
+
                 successMessages.add("Your OTP Code was sent successfully to email: " + email);
             }
 
             request.setAttribute("email", email);
 
             addMessages(request);
-            
+
             request.getRequestDispatcher("/views/ForgotPassword.jsp").forward(request, response);
         } else {
             request.setAttribute("email", email);
@@ -280,22 +347,22 @@ public class Authent extends HttpServlet {
 
         if (emailExists) {
             String otpMatch = cd.getVerifyCodeByEmail(email);
-            
-            if (otp.equals(otpMatch) && otpMatch != null) {   
+
+            if (otp.equals(otpMatch) && otpMatch != null) {
                 String newPassword = cd.generateRandomPassword(8);
                 cd.addNewPasswordForAccountByEmail(newPassword, email);
-                
+
                 ServletContext context = getServletContext();
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
                 scheduler.schedule(() -> {
                     es.sendMsgEmail(context, email, "Your New Password", "npType", newPassword);
                 }, 1, TimeUnit.SECONDS);
-                
+
                 successMessages.add("Your password was sent successfully to email: " + email + otp);
                 addMessages(request);
-                
+
                 request.getRequestDispatcher("/views/Login.jsp").forward(request, response);
-            } else {        
+            } else {
                 CountdownInfo countdownInfo = emailToCountdownMap.get(email);
                 long currentTime = System.currentTimeMillis();
                 long elapsedTime = (currentTime - countdownInfo.getStartTime()) / 1000;
@@ -303,12 +370,12 @@ public class Authent extends HttpServlet {
                 if (remainingTime <= 0) {
                     remainingTime = 0;
                 }
-                
+
                 request.setAttribute("countdownDuration", remainingTime);
-                
+
                 errorMessages.add("Incorrect code not matching, please check it again!");
                 addMessages(request);
-                
+
                 request.getRequestDispatcher("/views/ForgotPassword.jsp").forward(request, response);
             }
         } else {
