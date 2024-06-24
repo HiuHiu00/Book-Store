@@ -1,2 +1,0 @@
-dao.TestCustomerDAO
-dao.CustomerDAO

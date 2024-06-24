@@ -1,6 +1,7 @@
 package dao;
 
 import dal.DBContext;
+import entity.Account;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -262,6 +263,30 @@ public class CustomerDAO {
             closeConnection(connection, ps, rs);
         }
     }
+    
+    public Account getPublicAccountInfobyEmail(String email){
+        try{
+            connection = DBContext.getConnection();
+            String query = "SELECT * FROM Account WHERE Email=?";
+            ps = connection.prepareStatement(query);
+            ps.setString(1, email);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                Account acc = Account.builder()
+                        .AccountID(rs.getInt("AccountID"))
+                        .Email(email)
+                        .RoleID(rs.getInt("RoleID"))
+                        .build();
+                return acc;
+            }
+
+        } catch(SQLException e){
+            logger.log(Level.SEVERE, "Error occurred while get verify code by email", e);
+        } finally {
+            closeConnection(connection, ps, rs);
+        }
+        return null;    
+    }
 
 }
 
@@ -269,7 +294,13 @@ class TestCustomerDAO {
 
     public static void main(String[] args) {
         CustomerDAO cd = new CustomerDAO();
-        cd.checkAccountExistsByEmail("hieulove0408@gmail.com");
-
+         Account account = cd.getPublicAccountInfobyEmail("t@gmail.com");
+        if (account != null) {
+            System.out.println("AccountID: " + account.getAccountID());
+            System.out.println("Email: " + account.getEmail());
+            System.out.println("RoleID: " + account.getRoleID());
+        } else {
+            System.out.println("No account found with the provided email.");
+        }
     }
 }

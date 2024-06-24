@@ -85,6 +85,10 @@ public class Authent extends HttpServlet {
                 "views/ForgotPassword.jsp";
             case "adminLogin" ->
                 "views/AdminLogin.jsp";
+            case "logout" -> {
+                logout(request, response);
+                yield "views/Login.jsp";
+            }
             default ->
                 "index.html";
         };
@@ -148,7 +152,12 @@ public class Authent extends HttpServlet {
                 successMessages.add("Loggin success.");
                 addMessages(request);
 
-                request.getRequestDispatcher("/views/Login.jsp").forward(request, response);
+                HttpSession session = request.getSession();
+                Account me = cd.getPublicAccountInfobyEmail(email);
+                session.setAttribute("accountLoggedIn", me);
+                session.setAttribute("isLoggedIn", true);
+
+                request.getRequestDispatcher("/views/HomePage.jsp").forward(request, response);
             }
         } else {
             request.setAttribute("email", email);
@@ -264,6 +273,18 @@ public class Authent extends HttpServlet {
                 request.getRequestDispatcher("/views/Register.jsp").forward(request, response);
             }
         }
+    }
+
+    private void logout(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.removeAttribute("IsLogged");
+            session.removeAttribute("accountLoggedIn");
+            session.invalidate();
+        }
+        clearMessages();
+        successMessages.add("Logout successfully!");
+        addMessages(request);
     }
 
     /**
