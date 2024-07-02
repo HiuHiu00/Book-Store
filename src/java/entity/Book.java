@@ -19,4 +19,8 @@ public class Book {
     private String Description;
     private int AuthorID;
     private int DiscountID;
+    private String Cover_imagePath;
+    
+    private Author author;
+    private Publisher publisher;
 }
