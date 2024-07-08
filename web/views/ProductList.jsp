@@ -181,7 +181,22 @@
                                 <div class="row g-4">
                                     <div class="col-lg-12">
                                         <div class="mb-3">
-                                                                            <div id="suggestions"></div>
+
+                                            <div id="suggestions"></div>
+                                            
+                                            <div id="selected-genres">
+                                                <ul class="list-unstyled fruite-categorie">
+                                                    <c:forEach var="genre" items="${sessionScope.genreSelected}">
+                                                        <li>
+                                                            <div class="d-flex justify-content-between fruite-name">
+                                                                <a href="#"><i class="fas fa-book me-2"></i>${genre}</a>
+                                                                <span>X</span>
+                                                            </div>
+                                                        </li>
+                                                    </c:forEach>
+                                                </ul>
+                                            </div>
+                                            
                                         </div>
                                     </div>
                                     <!--                                    <div class="col-lg-12">
@@ -317,26 +332,26 @@
                                             </div>
                                         </div>
                                     </c:forEach>
-                                    <nav aria-label="Page navigation example" style="padding-top: 20px">
-                                        <ul class="pagination" style="display: flex; justify-content: center;">
-                                            <li class="page-item <c:if test='${currentPage == 1}'>disabled</c:if>'">
-                                                <a class="page-link" href="browse?action=productList&page=${currentPage - 1}" aria-label="Previous">
-                                                    <span aria-hidden="true">&laquo;</span>
-                                                </a>
-                                            </li>
-                                            <c:forEach var="i" begin="1" end="${totalPages}">
-                                                <li class="page-item <c:if test='${currentPage == i}'>active</c:if>'">
-                                                    <a class="page-link" href="browse?action=productList&page=${i}"
-                                                       <c:if test='${currentPage == i}'>style="background-color: #28a745; border-color: #28a745; color: white;"</c:if>>${i}</a>
-                                                    </li>
-                                            </c:forEach>
-                                            <li class="page-item <c:if test='${currentPage == totalPages}'>disabled</c:if>'">
-                                                <a class="page-link" href="browse?action=productList&page=${currentPage + 1}" aria-label="Next">
-                                                    <span aria-hidden="true">&raquo;</span>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </nav>
+                                    <!--                                    <nav aria-label="Page navigation example" style="padding-top: 20px">
+                                                                            <ul class="pagination" style="display: flex; justify-content: center;">
+                                                                                <li class="page-item <c:if test='${currentPage == 1}'>disabled</c:if>'">
+                                                                                    <a class="page-link" href="browse?action=productList&page=${currentPage - 1}" aria-label="Previous">
+                                                                                        <span aria-hidden="true">&laquo;</span>
+                                                                                    </a>
+                                                                                </li>
+                                    <c:forEach var="i" begin="1" end="${totalPages}">
+                                        <li class="page-item <c:if test='${currentPage == i}'>active</c:if>'">
+                                            <a class="page-link" href="browse?action=productList&page=${i}"
+                                        <c:if test='${currentPage == i}'>style="background-color: #28a745; border-color: #28a745; color: white;"</c:if>>${i}</a>
+                                     </li>
+                                    </c:forEach>
+                                    <li class="page-item <c:if test='${currentPage == totalPages}'>disabled</c:if>'">
+                                        <a class="page-link" href="browse?action=productList&page=${currentPage + 1}" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>-->
 
                                 </div>
                             </div>
@@ -355,8 +370,8 @@
                     <div class="row g-4">
                         <div class="col-lg-3">
                             <a href="#">
-                                <h1 class="text-primary mb-0">Fruitables</h1>
-                                <p class="text-secondary mb-0">Fresh products</p>
+                                <h1 class="text-primary mb-0">My Book Store</h1>
+                                <p class="text-secondary mb-0">Life is Short, Read Fast.</p>
                             </a>
                         </div>
                         <div class="col-lg-6">
@@ -409,11 +424,10 @@
                     <div class="col-lg-3 col-md-6">
                         <div class="footer-item">
                             <h4 class="text-light mb-3">Contact</h4>
-                            <p>Address: 1429 Netus Rd, NY 48247</p>
-                            <p>Email: Example@gmail.com</p>
+                            <p>Address: 123, Vietnam, Hanoi.</p>
+                            <p>Email: clothingshoponlineg1se1754@gmail.com</p>
                             <p>Phone: +0123 4567 8910</p>
-                            <p>Payment Accepted</p>
-                            <img src="img/payment.png" class="img-fluid" alt="">
+
                         </div>
                     </div>
                 </div>
@@ -426,7 +440,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-                        <span class="text-light"><a href="#"><i class="fas fa-copyright text-light me-2"></i>Your Site Name</a>, All right reserved.</span>
+                        <span class="text-light"><a href="#"><i class="fas fa-copyright text-light me-2"></i>MyBookStore</a>, All right reserved.</span>
                     </div>
                     <div class="col-md-6 my-auto text-center text-md-end text-white">
                         <!--/*** This template is free as long as you keep the below author’s credit link/attribution link/backlink. ***/-->
@@ -439,14 +453,12 @@
         </div>
         <!-- Copyright End -->
 
-
-
         <!-- Back to Top -->
         <a href="#" class="btn btn-primary border-3 border-primary rounded-circle back-to-top"><i class="fa fa-arrow-up"></i></a>   
 
-
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
         <script>
             const genreList = ${requestScope.book_genre_name_list};
             const input = document.getElementById('autocomplete-input');
@@ -463,7 +475,7 @@
                         div.addEventListener('click', function () {
                             input.value = suggestion;
                             suggestionBox.style.display = 'none';
-                            window.location.href = 'browse?action=productList&genre=' + encodeURIComponent(suggestion);
+                            window.location.href = 'browse?action=productList&addGenre=' + encodeURIComponent(suggestion);
                         });
                         suggestionBox.appendChild(div);
                     });
@@ -472,12 +484,7 @@
                     suggestionBox.style.display = 'none';
                 }
             });
-
-            input.addEventListener('keydown', function (event) {
-                if (event.key === 'Enter' && input.value) {
-                    window.location.href = 'browse?action=productList&genre=' + encodeURIComponent(input.value);
-                }
-            });
+            
         </script>
         <script>
             $(document).ready(function () {

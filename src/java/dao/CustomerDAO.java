@@ -174,7 +174,7 @@ public class CustomerDAO {
             try {
                 deleteOTPByEmail(email);
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "Error occurred in delete otp code for email schedule task set", e);
             }
         }, delayInMinutes, TimeUnit.MINUTES);
     }
@@ -263,9 +263,9 @@ public class CustomerDAO {
             closeConnection(connection, ps, rs);
         }
     }
-    
-    public Account getPublicAccountInfobyEmail(String email){
-        try{
+
+    public Account getPublicAccountInfobyEmail(String email) {
+        try {
             connection = DBContext.getConnection();
             String query = "SELECT * FROM Account WHERE Email=?";
             ps = connection.prepareStatement(query);
@@ -280,12 +280,12 @@ public class CustomerDAO {
                 return acc;
             }
 
-        } catch(SQLException e){
-            logger.log(Level.SEVERE, "Error occurred while get verify code by email", e);
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error occurred while get account information by email", e);
         } finally {
             closeConnection(connection, ps, rs);
         }
-        return null;    
+        return null;
     }
 
 }
@@ -294,7 +294,7 @@ class TestCustomerDAO {
 
     public static void main(String[] args) {
         CustomerDAO cd = new CustomerDAO();
-         Account account = cd.getPublicAccountInfobyEmail("t@gmail.com");
+        Account account = cd.getPublicAccountInfobyEmail("t@gmail.com");
         if (account != null) {
             System.out.println("AccountID: " + account.getAccountID());
             System.out.println("Email: " + account.getEmail());

@@ -4,7 +4,11 @@ import EmailSender.EmailSender;
 import dao.CustomerDAO;
 import EmailSender.CountdownInfo;
 import dao.AdminDAO;
+import dao.BrowseDAO;
 import entity.Account;
+import entity.Book;
+import entity.Genre;
+import entity.GenreProvider;
 import jakarta.servlet.ServletContext;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -29,6 +33,7 @@ public class Authent extends HttpServlet {
     CustomerDAO cd = new CustomerDAO();
     AdminDAO ad = new AdminDAO();
     EmailSender es = new EmailSender();
+    BrowseDAO bd = new BrowseDAO();
     // Lists to store different types of messages
     List<String> successMessages = new ArrayList<>();
     List<String> infoMessages = new ArrayList<>();
@@ -149,14 +154,17 @@ public class Authent extends HttpServlet {
 
                 request.getRequestDispatcher("/views/Login.jsp").forward(request, response);
             } else {
-                successMessages.add("Loggin success.");
-                addMessages(request);
-
                 HttpSession session = request.getSession();
                 Account me = cd.getPublicAccountInfobyEmail(email);
                 session.setAttribute("accountLoggedIn", me);
                 session.setAttribute("isLoggedIn", true);
-
+                
+                listBookDefault(request, response, 8);
+                List<Genre> genreList = GenreProvider.getGenreList();
+                request.setAttribute("book_genre_list", genreList);
+                
+                successMessages.add("Loggin success.");
+                addMessages(request);
                 request.getRequestDispatcher("/views/HomePage.jsp").forward(request, response);
             }
         } else {
@@ -407,6 +415,35 @@ public class Authent extends HttpServlet {
 
             request.getRequestDispatcher("/views/ForgotPassword.jsp").forward(request, response);
         }
+    }
+    
+    private void listBookDefault(HttpServletRequest request, HttpServletResponse response, int size) throws ServletException, IOException {
+        int page = Integer.parseInt(request.getParameter("page") == null ? "1" : request.getParameter("page"));
+
+        List<Book> bookList = bd.getBookList();
+
+        int totalItems = bookList.size();
+        int totalPages;
+
+        if (totalItems != 0) {
+            totalPages = (int) Math.ceil((double) totalItems / size);
+        } else {
+            totalPages = 1;
+        }
+        if (page < 1) {
+            page = 1;
+        } else if (page > totalPages) {
+            page = totalPages;
+        }
+
+        int fromIndex = (page - 1) * size;
+        int toIndex = Math.min(fromIndex + size, totalItems);
+
+        List<Book> paginatedBookList = bookList.subList(fromIndex, toIndex);
+
+        request.setAttribute("currentPage", page);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("bookList", paginatedBookList);
     }
 
 }

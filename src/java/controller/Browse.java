@@ -63,21 +63,20 @@ public class Browse extends HttpServlet {
             throws ServletException, IOException {
         String url = "";
         String action = request.getParameter("action") == null ? "home" : request.getParameter("action");
-        List<Genre> genreList = GenreProvider.getGenreList();
-        List<String> genreNames = GenreProvider.getGenreList().stream()
-                .map(Genre::getGenre)
-                .map(genre -> "'" + genre + "'")
-                .collect(Collectors.toList());
 
         url = switch (action) {
             case "home" -> {
                 listBookDefault(request, response, 8);
+                List<Genre> genreList = GenreProvider.getGenreList();
                 request.setAttribute("book_genre_list", genreList);
                 yield "views/HomePage.jsp";
             }
             case "productList" -> {
                 listBookWithFilter(request, response, 6);
-                request.setAttribute("book_genre_list", genreList);
+                List<String> genreNames = GenreProvider.getGenreList().stream()
+                        .map(Genre::getGenre)
+                        .map(genre -> "'" + genre + "'")
+                        .collect(Collectors.toList());
                 request.setAttribute("book_genre_name_list", genreNames);
                 yield "views/ProductList.jsp";
             }
@@ -100,10 +99,9 @@ public class Browse extends HttpServlet {
             throws ServletException, IOException {
         String action = request.getParameter("action") == null ? "home" : request.getParameter("action");
         switch (action) {
+            case "filter" -> {
 
-            case "test" ->
-                Test(request, response);
-
+            }
             default ->
                 throw new AssertionError();
         }
@@ -111,15 +109,23 @@ public class Browse extends HttpServlet {
 
     private void listBookDefault(HttpServletRequest request, HttpServletResponse response, int size) throws ServletException, IOException {
         int page = Integer.parseInt(request.getParameter("page") == null ? "1" : request.getParameter("page"));
-
+        clearMessages();
         List<Book> bookList = bd.getBookList();
+
         int totalItems = bookList.size();
-        int totalPages = (int) Math.ceil((double) totalItems / size);
+        int totalPages;
+
+        if (totalItems != 0) {
+            totalPages = (int) Math.ceil((double) totalItems / size);
+        } else {
+            totalPages = 1;
+        }
         if (page < 1) {
             page = 1;
         } else if (page > totalPages) {
             page = totalPages;
         }
+
         int fromIndex = (page - 1) * size;
         int toIndex = Math.min(fromIndex + size, totalItems);
 
@@ -128,58 +134,35 @@ public class Browse extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("bookList", paginatedBookList);
+
     }
 
     private void listBookWithFilter(HttpServletRequest request, HttpServletResponse response, int size) throws ServletException, IOException {
-        int page = Integer.parseInt(request.getParameter("page") == null ? "1" : request.getParameter("page"));
-        String ge = request.getParameter("genre") == null ? "all" : request.getParameter("genre");
-        HttpSession session = request.getSession();
         clearMessages();
-        List<String> genreList;
-        if (session.getAttribute("genreListSession") == null) {
-            genreList = new ArrayList<>();
-            session.setAttribute("genreListSession", genreList);
-        } else {
-            genreList = (List<String>) session.getAttribute("genreListSession");
-            if (genreList.size() >= 4) {
-                warningMessages.add("A maximum of 4 genres can be selected.");
-            } else {
-                if (!ge.equals("all") && !genreList.contains(ge)) {
-                    genreList.add(ge);
-                }
 
-            }
-            session.setAttribute("genreListSession", genreList);
+        int page = Integer.parseInt(request.getParameter("page") == null ? "1" : request.getParameter("page"));
+
+        String genre = request.getParameter("addGenre");
+        HttpSession session = request.getSession();
+
+        List<String> genreSelected = (List<String>) session.getAttribute("genreSelected");
+        if (genreSelected == null) {
+            genreSelected = new ArrayList<>();
         }
 
-        List<Book> bookList;
-        if (genreList.isEmpty()) {
-            bookList = bd.getBookList();
-        } else {
-            bookList = bd.getBookListWithGenreFilter(genreList);
+        if (genre != null && !genreSelected.contains(genre)) {
+            genreSelected.add(genre);
         }
-        
-        int totalItems = bookList.size();
-        int totalPages = (int) Math.ceil((double) totalItems / size);
-        if (page < 1) {
-            page = 1;
-        } else if (page > totalPages) {
-            page = totalPages;
-        }
-        int fromIndex = (page - 1) * size;
-        int toIndex = Math.min(fromIndex + size, totalItems);
 
-        List<Book> paginatedBookList = bookList.subList(fromIndex, toIndex);
-        addMessages(request);
+        session.setAttribute("genreSelected", genreSelected);
 
+        List<Book> FilterSearchBookList = bd.getBookListWithFilterSearch(page, size, genreSelected, null, null, null, null);
+
+        int totalPages = (int) Math.ceil((double) FilterSearchBookList.size() / size);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
-        request.setAttribute("bookList", paginatedBookList);
+        request.setAttribute("bookList", FilterSearchBookList);
+        addMessages(request);
     }
 
-    private void Test(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        clearMessages();
-        successMessages.add("Loggin success.");
-        request.getRequestDispatcher("/views/HomePage.jsp").forward(request, response);
-    }
 }

@@ -10,10 +10,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class BrowseDAO {
 
@@ -46,6 +46,10 @@ public class BrowseDAO {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public List<Book> getBookList() {
         List<Book> bookList = new ArrayList<>();
         try {
@@ -86,33 +90,90 @@ public class BrowseDAO {
         return bookList;
     }
 
-    public List<Book> getBookListWithGenreFilter(List<String> genreList) {
+    /**
+     *
+     * @param pageNumber
+     * @param pageSize
+     * @param genreList
+     * @param minPrice
+     * @param maxPrice
+     * @param authorName
+     * @param publisherName
+     * @return
+     */
+    public List<Book> getBookListWithFilterSearch(int pageNumber, int pageSize, List<String> genreList, Double minPrice, Double maxPrice, String authorName, String publisherName) {
         List<Book> bookList = new ArrayList<>();
+        int offset = (pageNumber - 1) * pageSize;
         try {
             connection = DBContext.getConnection();
-            StringBuilder placeholders = new StringBuilder();
-            for (int i = 0; i < genreList.size(); i++) {
-                placeholders.append("?");
-                if (i < genreList.size() - 1) {
-                    placeholders.append(", ");
+
+            StringBuilder queryBuilder = new StringBuilder();
+            queryBuilder.append("""
+            SELECT b.*, a.AuthorName, p.PublisherName, p.PublisherImagePath
+            FROM Book b
+            JOIN Author a ON b.AuthorID = a.AuthorID
+            JOIN Publisher p ON p.PublisherID = b.PublisherID
+            JOIN Genre g ON g.BookID = b.BookID
+            WHERE 1=1
+        """);
+
+            if (genreList != null && !genreList.isEmpty()) {
+                queryBuilder.append(" AND g.Genre IN (");
+                for (int i = 0; i < genreList.size(); i++) {
+                    queryBuilder.append("?,");
+                }
+                queryBuilder.setLength(queryBuilder.length() - 1);
+                queryBuilder.append(")");
+            }
+
+            if (minPrice != null && maxPrice != null) {
+                queryBuilder.append(" AND b.Price BETWEEN ? AND ?");
+            }
+            if (authorName != null && !authorName.isEmpty()) {
+                queryBuilder.append(" AND a.AuthorName LIKE ?");
+            }
+
+            if (publisherName != null && !publisherName.isEmpty()) {
+                queryBuilder.append(" AND p.PublisherName LIKE ?");
+            }
+
+            queryBuilder.append("""
+            GROUP BY b.BookID, b.Title, b.ISBN13, b.Publication_date, b.PublisherID, b.Stock, b.Price, b.[Description], b.DiscountID, b.AuthorID, b.Cover_imagePath, a.AuthorName, p.PublisherName, p.PublisherImagePath
+             """);
+            if (genreList != null && !genreList.isEmpty()) {
+                queryBuilder.append("HAVING COUNT(DISTINCT g.Genre) = ?");
+            }
+            queryBuilder.append("""
+            ORDER BY b.BookID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+        """);
+
+            ps = connection.prepareStatement(queryBuilder.toString());
+            int paramIndex = 1;
+            if (genreList != null && !genreList.isEmpty()) {
+                for (String genre : genreList) {
+                    ps.setString(paramIndex++, genre);
                 }
             }
 
-            String query = """
-                        SELECT b.*, a.AuthorName, p.PublisherName, p.PublisherImagePath
-                        FROM Book b
-                        JOIN Author a ON b.AuthorID = a.AuthorID
-                        JOIN Publisher p ON p.PublisherID = b.PublisherID
-                        JOIN Genre g ON g.BookID = b.BookID
-                        WHERE g.Genre IN (""" + placeholders.toString() + """
-                )GROUP BY b.BookID, b.Title, b.ISBN13, b.Publication_date, b.PublisherID, b.Stock, b.Price, b.[Description], b.DiscountID, b.AuthorID, b.Cover_imagePath, a.AuthorName, p.PublisherName, p.PublisherImagePath""";
-
-            ps = connection.prepareStatement(query);
-            for (int i = 0; i < genreList.size(); i++) {
-                ps.setString(i + 1, genreList.get(i));
+            if (minPrice != null && maxPrice != null) {
+                ps.setDouble(paramIndex++, minPrice);
+                ps.setDouble(paramIndex++, maxPrice);
             }
 
+            if (authorName != null && !authorName.isEmpty()) {
+                ps.setString(paramIndex++, "%" + authorName + "%");
+            }
+
+            if (publisherName != null && !publisherName.isEmpty()) {
+                ps.setString(paramIndex++, "%" + publisherName + "%");
+            }
+            if (genreList != null && !genreList.isEmpty()) {
+                            ps.setInt(paramIndex++, genreList.size());
+            }
+            ps.setInt(paramIndex++, offset);
+            ps.setInt(paramIndex++, pageSize);
             rs = ps.executeQuery();
+
             while (rs.next()) {
                 Author author = Author.builder()
                         .AuthorName(rs.getString("AuthorName"))
@@ -149,6 +210,8 @@ class Test {
 
     public static void main(String[] args) {
         BrowseDAO bd = new BrowseDAO();
-        System.out.println(bd.getBookList());
+        List<String> selectedGenres = Arrays.asList("Fantasy", "Mystery");
+        System.out.println(bd.getBookListWithFilterSearch(1, 6, null, null, null, null, null).size());
+        System.out.println(bd.getBookListWithFilterSearch(1, 6, selectedGenres, null, null, null, null).size());
     }
 }
