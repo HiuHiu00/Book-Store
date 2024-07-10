@@ -50,11 +50,11 @@
             #suggestions div:hover {
                 background-color: #f0f0f0;
             }
-            .no-style {
-                all: unset;
-                text-decoration: none;
-                color: inherit;
-            }
+            /*            .no-style {
+                            all: unset;
+                            text-decoration: none;
+                            color: inherit;
+                        }*/
         </style>
     </head>
 
@@ -128,39 +128,6 @@
         </div>
         <!-- Navbar End -->
 
-
-        <!--         Modal Search Start 
-                <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-fullscreen">
-                        <div class="modal-content rounded-0">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLabel">Search by keyword</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body d-flex align-items-center">
-                                <div class="input-group w-75 mx-auto d-flex">
-                                    <input type="search" class="form-control p-3" placeholder="keywords" aria-describedby="search-icon-1">
-                                    <span id="search-icon-1" class="input-group-text p-3"><i class="fa fa-search"></i></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                 Modal Search End -->
-
-
-        <!--         Single Page Header start 
-                <div class="container-fluid page-header py-5">
-                    <h1 class="text-center text-white display-6">Shop</h1>
-                    <ol class="breadcrumb justify-content-center mb-0">
-                        <li class="breadcrumb-item"><a href="browse?action=home">Home</a></li>
-                        <li class="breadcrumb-item"><a href="#">Book List</a></li>
-                        <li class="breadcrumb-item active text-white">Shop</li>
-                    </ol>
-                </div>
-                 Single Page Header End -->
-
-
         <!-- Fruits Shop Start-->
         <div class="container-fluid fruite py-5">
             <div class="container py-5">
@@ -169,9 +136,9 @@
                     <div class="col-lg-12">
                         <div class="row g-4">
                             <div class="col-xl-3">
-                                <h4>Genres</h4>
+                                <h4>Featured Genres</h4>
                                 <div style="position: relative;">
-                                    <input type="text" class="form-control p-3" id="autocomplete-input" placeholder="Enter genre to find">
+                                    <input type="text" class="form-control p-3" id="autocomplete-input" placeholder="Enter book genre you want to find">
                                     <div id="suggestions"></div>
                                 </div>
                             </div>
@@ -193,12 +160,24 @@
                                 <div class="row g-4">
                                     <div class="col-lg-12">
                                         <div class="mb-3">
-                                            <div id="selected-genres" style="max-width: 100%; height: 170px; border: 2px solid #28a745; border-radius: 10px; margin-top: 5px; padding-left: 1%;">
-                                                <ul class="list-unstyled fruite-categorie">
+                                            <div id="selected-genres" style="max-width: 100%; height: 170px; border: 2px solid #28a745; border-radius: 10px; margin-top: 5px; padding:  1% 3%;">
+                                                <style>
+                                                    .genre-choose li {
+                                                        transition: box-shadow 0.3s ease, background-color 0.3s ease;
+                                                    }
+
+                                                    .genre-choose li:hover {
+                                                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                                                        background-color: #f0f0f0;
+                                                        cursor: pointer;
+                                                        border-radius: 10px;
+                                                    }
+                                                </style>
+                                                <ul class="list-unstyled fruite-categorie genre-choose">
                                                     <c:forEach var="genre" items="${sessionScope.genreSelected}">
-                                                        <li>
+                                                        <li onclick="removeGenre('${genre}')">
                                                             <div class="d-flex justify-content-between fruite-name">
-                                                                <a><i class="fas fa-book me-2"></i>${genre}</a>
+                                                                <a style="color: #81c408"><i class="fas fa-book me-2"></i>${genre}</a>
                                                                 <span><i class="fas fa-times"></i></span>
                                                             </div>
                                                         </li>
@@ -207,16 +186,38 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!--                                    <div class="col-lg-12">
-                                                                            <div class="mb-3">
-                                                                                <h4 class="mb-2">Price</h4>
-                                                                                <input type="range" class="form-range w-100" id="rangeInput" name="rangeInput" min="0" max="500" value="0" oninput="amount.value=rangeInput.value">
-                                                                                <output id="amount" name="amount" min-velue="0" max-value="500" for="rangeInput">0</output>
-                                                                            </div>
-                                                                        </div>-->
+                                    <script>
+                                        const genreList = ${requestScope.book_genre_name_list};
+                                        const input = document.getElementById('autocomplete-input');
+                                        const suggestionBox = document.getElementById('suggestions');
+
+                                        input.addEventListener('input', function () {
+                                            const query = input.value.toLowerCase();
+                                            suggestionBox.innerHTML = '';
+                                            if (query) {
+                                                const filteredSuggestions = genreList.filter(item => item.toLowerCase().includes(query));
+                                                filteredSuggestions.forEach(suggestion => {
+                                                    const div = document.createElement('div');
+                                                    div.textContent = suggestion;
+                                                    div.addEventListener('click', function () {
+                                                        input.value = suggestion;
+                                                        suggestionBox.style.display = 'none';
+                                                        window.location.href = 'browse?action=productList&addGenre=' + encodeURIComponent(suggestion);
+                                                    });
+                                                    suggestionBox.appendChild(div);
+                                                });
+                                                suggestionBox.style.display = 'block';
+                                            } else {
+                                                suggestionBox.style.display = 'none';
+                                            }
+                                        });
+                                        function removeGenre(genre) {
+                                            window.location.href = 'browse?action=productList&removeGenre=' + encodeURIComponent(genre);
+                                        }
+                                    </script>
                                     <div class="col-lg-12">
                                         <div class="mb-3">
-                                            <h4>Price Range Select</h4>
+                                            <h4>Featured Price Range</h4>
                                             <div class="mb-2">
                                                 <input type="radio" class="me-2" value="0" id="priceRange0" name="priceRange" <c:if test='${currentPriceSelected == 0}'>checked</c:if>>
                                                     <label for="Categories-1"> All</label>
@@ -238,7 +239,7 @@
                                                     <label for="Categories-5"> >100$ </label>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> 
                                         <script>
                                             function sendPriceRange() {
                                                 var selectedValue = document.querySelector('input[name="priceRange"]:checked').value;
@@ -251,128 +252,67 @@
                                                 radio.addEventListener('change', sendPriceRange);
                                             });
                                         </script>
-                                        <!--                                    <div class="col-lg-12">
-                                                                                <h4 class="mb-3">Featured products</h4>
-                                                                                <div class="d-flex align-items-center justify-content-start">
-                                                                                    <div class="rounded me-4" style="width: 100px; height: 100px;">
-                                                                                        <img src="img/featur-1.jpg" class="img-fluid rounded" alt="">
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <h6 class="mb-2">Big Banana</h6>
-                                                                                        <div class="d-flex mb-2">
-                                                                                            <i class="fa fa-star text-secondary"></i>
-                                                                                            <i class="fa fa-star text-secondary"></i>
-                                                                                            <i class="fa fa-star text-secondary"></i>
-                                                                                            <i class="fa fa-star text-secondary"></i>
-                                                                                            <i class="fa fa-star"></i>
-                                                                                        </div>
-                                                                                        <div class="d-flex mb-2">
-                                                                                            <h5 class="fw-bold me-2">2.99 $</h5>
-                                                                                            <h5 class="text-danger text-decoration-line-through">4.11 $</h5>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="d-flex align-items-center justify-content-start">
-                                                                                    <div class="rounded me-4" style="width: 100px; height: 100px;">
-                                                                                        <img src="img/featur-2.jpg" class="img-fluid rounded" alt="">
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <h6 class="mb-2">Big Banana</h6>
-                                                                                        <div class="d-flex mb-2">
-                                                                                            <i class="fa fa-star text-secondary"></i>
-                                                                                            <i class="fa fa-star text-secondary"></i>
-                                                                                            <i class="fa fa-star text-secondary"></i>
-                                                                                            <i class="fa fa-star text-secondary"></i>
-                                                                                            <i class="fa fa-star"></i>
-                                                                                        </div>
-                                                                                        <div class="d-flex mb-2">
-                                                                                            <h5 class="fw-bold me-2">2.99 $</h5>
-                                                                                            <h5 class="text-danger text-decoration-line-through">4.11 $</h5>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="d-flex align-items-center justify-content-start">
-                                                                                    <div class="rounded me-4" style="width: 100px; height: 100px;">
-                                                                                        <img src="img/featur-3.jpg" class="img-fluid rounded" alt="">
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <h6 class="mb-2">Big Banana</h6>
-                                                                                        <div class="d-flex mb-2">
-                                                                                            <i class="fa fa-star text-secondary"></i>
-                                                                                            <i class="fa fa-star text-secondary"></i>
-                                                                                            <i class="fa fa-star text-secondary"></i>
-                                                                                            <i class="fa fa-star text-secondary"></i>
-                                                                                            <i class="fa fa-star"></i>
-                                                                                        </div>
-                                                                                        <div class="d-flex mb-2">
-                                                                                            <h5 class="fw-bold me-2">2.99 $</h5>
-                                                                                            <h5 class="text-danger text-decoration-line-through">4.11 $</h5>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="d-flex justify-content-center my-4">
-                                                                                    <a href="#" class="btn border border-secondary px-4 py-3 rounded-pill text-primary w-100">Vew More</a>
-                                                                                </div>
-                                                                            </div>-->
-                                        <!--                                    <div class="col-lg-12">
-                                                                                <div class="position-relative">
-                                                                                    <img src="img/banner-fruits.jpg" class="img-fluid w-100 rounded" alt="">
-                                                                                    <div class="position-absolute" style="top: 50%; right: 10px; transform: translateY(-50%);">
-                                                                                        <h3 class="text-secondary fw-bold">Fresh <br> Fruits <br> Banner</h3>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>-->
+
                                     </div>
                                 </div>
                                 <div class="col-lg-9">
                                     <div class="row g-4 justify-content-center">
-                                    <c:forEach items="${bookList}" var="bl">
-                                        <div class="col-md-6 col-lg-6 col-xl-4">
-                                            <div class="rounded position-relative fruite-item">
-                                                <div class="fruite-img">
-                                                    <img src="assets/Template2/${bl.cover_imagePath}" class="img-fluid w-100 rounded-top" alt="">
-                                                </div>
-                                                <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">${bl.ISBN13}</div>
-                                                <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                    <h4>${bl.title}</h4>
-                                                    <p><c:choose>
-                                                            <c:when test="${fn:length(bl.description) <= 350}">
-                                                                ${bl.description}
-                                                            </c:when>
-                                                            <c:otherwise>
-                                                                ${fn:substring(bl.description, 0, 350)}...
-                                                            </c:otherwise>
-                                                        </c:choose>
-                                                    </p>
-                                                    <div class="d-flex justify-content-between flex-lg-wrap">
-                                                        <p class="text-dark fs-5 fw-bold mb-0">${bl.price}$</p>
-                                                        <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                    <c:choose>
+                                        <c:when test="${not empty noBook}">
+                                            <div class="text-center" style="padding: 20px; ">
+                                                <h2><img style="max-width: 20%" src="assets/Template2/images/npic.jpg" alt="thumbnail_not_found"><strong>${noBook}</strong></h2>
+                                            </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:forEach items="${bookList}" var="bl">
+                                                <div class="col-md-6 col-lg-6 col-xl-4">
+                                                    <div class="rounded position-relative fruite-item">
+                                                        <div class="fruite-img">
+                                                            <img src="assets/Template2/${bl.cover_imagePath}" class="img-fluid w-100 rounded-top" alt="">
+                                                        </div>
+                                                        <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">${bl.ISBN13}</div>
+                                                        <div class="p-4 border border-secondary border-top-0 rounded-bottom">
+                                                            <h4>${bl.title}</h4>
+                                                            <p><c:choose>
+                                                                    <c:when test="${fn:length(bl.description) <= 350}">
+                                                                        ${bl.description}
+                                                                    </c:when>
+                                                                    <c:otherwise>
+                                                                        ${fn:substring(bl.description, 0, 350)}...
+                                                                    </c:otherwise>
+                                                                </c:choose>
+                                                            </p>
+                                                            <div class="d-flex justify-content-between flex-lg-wrap">
+                                                                <p class="text-dark fs-5 fw-bold mb-0">${bl.price}$</p>
+                                                                <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    </c:forEach>
-                                    <!--                                    <nav aria-label="Page navigation example" style="padding-top: 20px">
-                                                                            <ul class="pagination" style="display: flex; justify-content: center;">
-                                                                                <li class="page-item <c:if test='${currentPage == 1}'>disabled</c:if>'">
-                                                                                    <a class="page-link" href="browse?action=productList&page=${currentPage - 1}" aria-label="Previous">
-                                                                                        <span aria-hidden="true">&laquo;</span>
-                                                                                    </a>
-                                                                                </li>
-                                    <c:forEach var="i" begin="1" end="${totalPages}">
-                                        <li class="page-item <c:if test='${currentPage == i}'>active</c:if>'">
-                                            <a class="page-link" href="browse?action=productList&page=${i}"
-                                        <c:if test='${currentPage == i}'>style="background-color: #28a745; border-color: #28a745; color: white;"</c:if>>${i}</a>
-                                     </li>
-                                    </c:forEach>
-                                    <li class="page-item <c:if test='${currentPage == totalPages}'>disabled</c:if>'">
-                                        <a class="page-link" href="browse?action=productList&page=${currentPage + 1}" aria-label="Next">
-                                            <span aria-hidden="true">&raquo;</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </nav>-->
+                                            </c:forEach>
 
+                                            <nav aria-label="Page navigation example" style="padding-top: 20px">
+                                                <ul class="pagination" style="display: flex; justify-content: center;">
+                                                    <li class="page-item <c:if test='${currentPage == 1}'>disabled</c:if>'">
+                                                        <a class="page-link" href="browse?action=productList&page=${currentPage - 1}" aria-label="Previous"
+                                                           <span aria-hidden="true">&laquo;</span>
+                                                        </a>
+                                                    </li>
+                                                    <c:forEach var="i" begin="1" end="${totalPages }">
+                                                        <li class="page-item <c:if test='${currentPage == i}'>active</c:if>'">
+                                                            <a class="page-link" href="browse?action=productList&page=${i}"
+                                                               <c:if test='${currentPage == i}'>style="background-color: #28a745; border-color: #28a745; color: white;"</c:if>>${i}</a>
+                                                            </li>
+                                                    </c:forEach>
+                                                    <li class="page-item <c:if test='${currentPage == totalPages}'>disabled</c:if>'">
+                                                        <a class="page-link" href="browse?action=productList&page=${currentPage + 1}" aria-label="Next"
+                                                           <span aria-hidden="true">&raquo;</span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </nav>     
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                             </div>
                         </div>
@@ -480,35 +420,9 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
         <script>
-                const genreList = ${requestScope.book_genre_name_list};
-                const input = document.getElementById('autocomplete-input');
-                const suggestionBox = document.getElementById('suggestions');
-
-                input.addEventListener('input', function () {
-                    const query = input.value.toLowerCase();
-                    suggestionBox.innerHTML = '';
-                    if (query) {
-                        const filteredSuggestions = genreList.filter(item => item.toLowerCase().includes(query));
-                        filteredSuggestions.forEach(suggestion => {
-                            const div = document.createElement('div');
-                            div.textContent = suggestion;
-                            div.addEventListener('click', function () {
-                                input.value = suggestion;
-                                suggestionBox.style.display = 'none';
-                                window.location.href = 'browse?action=productList&addGenre=' + encodeURIComponent(suggestion);
-                            });
-                            suggestionBox.appendChild(div);
-                        });
-                        suggestionBox.style.display = 'block';
-                    } else {
-                        suggestionBox.style.display = 'none';
-                    }
-                });
-        </script>
-        <script>
-            $(document).ready(function () {
-                toastr.options.closeButton = true;
-                toastr.options.progressBar = true;
+                                            $(document).ready(function () {
+                                                toastr.options.closeButton = true;
+                                                toastr.options.progressBar = true;
             <%
                    List<String> successMessages = (List<String>) request.getAttribute("successMessages");
                    List<String> infoMessages = (List<String>) request.getAttribute("infoMessages");
@@ -518,28 +432,28 @@
 
             <% if (successMessages != null) { %>
             <% for (String message : successMessages) { %>
-                toastr.success('<%= message %>', 'Success', {timeOut: 5000});
+                                                toastr.success('<%= message %>', 'Success', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (infoMessages != null) { %>
             <% for (String message : infoMessages) { %>
-                toastr.info('<%= message %>', 'Notification', {timeOut: 5000});
+                                                toastr.info('<%= message %>', 'Notification', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (warningMessages != null) { %>
             <% for (String message : warningMessages) { %>
-                toastr.warning('<%= message %>', 'Warning', {timeOut: 5000});
+                                                toastr.warning('<%= message %>', 'Warning', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (errorMessages != null) { %>
             <% for (String message : errorMessages) { %>
-                toastr.error('<%= message %>', 'Invalid', {timeOut: 5000});
+                                                toastr.error('<%= message %>', 'Invalid', {timeOut: 5000});
             <% } %>
             <% } %>
-            });
+                                            });
         </script>
         <!-- JavaScript Libraries -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>

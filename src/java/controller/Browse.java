@@ -63,7 +63,11 @@ public class Browse extends HttpServlet {
             throws ServletException, IOException {
         String url = "";
         String action = request.getParameter("action") == null ? "home" : request.getParameter("action");
-
+        if (!"productList".equals(action)) {
+            HttpSession session = request.getSession();
+            session.removeAttribute("genreSelected");
+            session.removeAttribute("currentPriceSelectedSession");
+        }
         url = switch (action) {
             case "home" -> {
                 listBookDefault(request, 8);
@@ -99,7 +103,7 @@ public class Browse extends HttpServlet {
             throws ServletException, IOException {
         String action = request.getParameter("action") == null ? "home" : request.getParameter("action");
         switch (action) {
-            case "filter" -> {
+            case "productList" -> {
 
             }
             default ->
@@ -154,8 +158,13 @@ public class Browse extends HttpServlet {
             } else {
                 genreSelected.add(genre);
             }
+            session.setAttribute("genreSelected", genreSelected);
         }
-        session.setAttribute("genreSelected", genreSelected);
+
+        String removeGenre = request.getParameter("removeGenre");
+        if (removeGenre != null && !removeGenre.isEmpty()) {
+            genreSelected.remove(removeGenre);
+        }
 
         String selectedPriceValue = request.getParameter("selectedPrice");
         Double minPrice = null;
@@ -204,12 +213,28 @@ public class Browse extends HttpServlet {
                 }
             }
         }
-        
+
         int page = Integer.parseInt(request.getParameter("page") == null ? "1" : request.getParameter("page"));
+        List<Book> bookList = bd.getBookList();
+        int totalItems = bookList.size();
+        int totalPages;
+        if (totalItems != 0) {
+            totalPages = (int) Math.ceil((double) totalItems / size);
+        } else {
+            totalPages = 1;
+        }
+        if (page < 1) {
+            page = 1;
+        } else if (page > totalPages) {
+            page = totalPages;
+        }
         List<Book> FilterSearchBookList = bd.getBookListWithFilterSearch(page, size, genreSelected, minPrice, maxPrice, null, null);
-        int totalPages = (int) Math.ceil((double) FilterSearchBookList.size() / size);
+        if (null == FilterSearchBookList || FilterSearchBookList.isEmpty()) {
+            request.setAttribute("noBook", "There are no books matching your featured search!");
+        }
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
+
         request.setAttribute("bookList", FilterSearchBookList);
         addMessages(request);
     }
