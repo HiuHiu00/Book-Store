@@ -66,13 +66,13 @@ public class Browse extends HttpServlet {
 
         url = switch (action) {
             case "home" -> {
-                listBookDefault(request, response, 8);
+                listBookDefault(request, 8);
                 List<Genre> genreList = GenreProvider.getGenreList();
                 request.setAttribute("book_genre_list", genreList);
                 yield "views/HomePage.jsp";
             }
             case "productList" -> {
-                listBookWithFilter(request, response, 6);
+                listBookWithFilter(request, 6);
                 List<String> genreNames = GenreProvider.getGenreList().stream()
                         .map(Genre::getGenre)
                         .map(genre -> "'" + genre + "'")
@@ -107,7 +107,7 @@ public class Browse extends HttpServlet {
         }
     }
 
-    private void listBookDefault(HttpServletRequest request, HttpServletResponse response, int size) throws ServletException, IOException {
+    private void listBookDefault(HttpServletRequest request, int size) throws ServletException, IOException {
         int page = Integer.parseInt(request.getParameter("page") == null ? "1" : request.getParameter("page"));
         clearMessages();
         List<Book> bookList = bd.getBookList();
@@ -137,27 +137,76 @@ public class Browse extends HttpServlet {
 
     }
 
-    private void listBookWithFilter(HttpServletRequest request, HttpServletResponse response, int size) throws ServletException, IOException {
+    private void listBookWithFilter(HttpServletRequest request, int size) throws ServletException, IOException {
         clearMessages();
-
-        int page = Integer.parseInt(request.getParameter("page") == null ? "1" : request.getParameter("page"));
-
-        String genre = request.getParameter("addGenre");
         HttpSession session = request.getSession();
 
+        String genre = request.getParameter("addGenre");
         List<String> genreSelected = (List<String>) session.getAttribute("genreSelected");
         if (genreSelected == null) {
             genreSelected = new ArrayList<>();
         }
-
-        if (genre != null && !genreSelected.contains(genre)) {
-            genreSelected.add(genre);
+        if (genre != null) {
+            if (genreSelected.contains(genre)) {
+                warningMessages.add("Duplicate genre!");
+            } else if (genreSelected.size() >= 4) {
+                warningMessages.add("Only 4 genres can be selected");
+            } else {
+                genreSelected.add(genre);
+            }
         }
-
         session.setAttribute("genreSelected", genreSelected);
 
-        List<Book> FilterSearchBookList = bd.getBookListWithFilterSearch(page, size, genreSelected, null, null, null, null);
+        String selectedPriceValue = request.getParameter("selectedPrice");
+        Double minPrice = null;
+        Double maxPrice = null;
 
+        if (selectedPriceValue == null) {
+            if (session.getAttribute("currentPriceSelectedSession") != null) {
+                selectedPriceValue = session.getAttribute("currentPriceSelectedSession").toString();
+            } else {
+                request.setAttribute("currentPriceSelected", 0);
+                session.setAttribute("currentPriceSelectedSession", 0);
+            }
+        }
+
+        if (selectedPriceValue != null) {
+            switch (selectedPriceValue) {
+                case "1" -> {
+                    minPrice = 0.0;
+                    maxPrice = 20.0;
+                    request.setAttribute("currentPriceSelected", 1);
+                    session.setAttribute("currentPriceSelectedSession", 1);
+                }
+                case "2" -> {
+                    minPrice = 20.0;
+                    maxPrice = 50.0;
+                    request.setAttribute("currentPriceSelected", 2);
+                    session.setAttribute("currentPriceSelectedSession", 2);
+                }
+                case "3" -> {
+                    minPrice = 50.0;
+                    maxPrice = 100.0;
+                    request.setAttribute("currentPriceSelected", 3);
+                    session.setAttribute("currentPriceSelectedSession", 3);
+                }
+                case "4" -> {
+                    minPrice = 100.0;
+                    maxPrice = 999.0;
+                    request.setAttribute("currentPriceSelected", 4);
+                    session.setAttribute("currentPriceSelectedSession", 4);
+                }
+                default -> {
+                    minPrice = null;
+                    maxPrice = null;
+                    request.setAttribute("currentPriceSelected", 0);
+                    session.setAttribute("currentPriceSelectedSession", 0);
+                }
+            }
+        }
+        
+        int page = Integer.parseInt(request.getParameter("page") == null ? "1" : request.getParameter("page"));
+        List<Book> FilterSearchBookList = bd.getBookListWithFilterSearch(page, size, genreSelected, minPrice, maxPrice, null, null);
         int totalPages = (int) Math.ceil((double) FilterSearchBookList.size() / size);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);

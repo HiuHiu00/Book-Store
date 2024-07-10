@@ -127,21 +127,21 @@ public class BrowseDAO {
             }
 
             if (minPrice != null && maxPrice != null) {
-                queryBuilder.append(" AND b.Price BETWEEN ? AND ?");
+                queryBuilder.append(" AND b.Price BETWEEN ? AND ? ");
             }
             if (authorName != null && !authorName.isEmpty()) {
-                queryBuilder.append(" AND a.AuthorName LIKE ?");
+                queryBuilder.append(" AND a.AuthorName LIKE ? ");
             }
 
             if (publisherName != null && !publisherName.isEmpty()) {
-                queryBuilder.append(" AND p.PublisherName LIKE ?");
+                queryBuilder.append(" AND p.PublisherName LIKE ? ");
             }
 
             queryBuilder.append("""
             GROUP BY b.BookID, b.Title, b.ISBN13, b.Publication_date, b.PublisherID, b.Stock, b.Price, b.[Description], b.DiscountID, b.AuthorID, b.Cover_imagePath, a.AuthorName, p.PublisherName, p.PublisherImagePath
              """);
             if (genreList != null && !genreList.isEmpty()) {
-                queryBuilder.append("HAVING COUNT(DISTINCT g.Genre) = ?");
+                queryBuilder.append("HAVING COUNT(DISTINCT g.Genre) = ? ");
             }
             queryBuilder.append("""
             ORDER BY b.BookID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
@@ -203,7 +203,7 @@ public class BrowseDAO {
         }
         return bookList;
     }
-
+    
 }
 
 class Test {
@@ -211,7 +211,7 @@ class Test {
     public static void main(String[] args) {
         BrowseDAO bd = new BrowseDAO();
         List<String> selectedGenres = Arrays.asList("Fantasy", "Mystery");
-        System.out.println(bd.getBookListWithFilterSearch(1, 6, null, null, null, null, null).size());
-        System.out.println(bd.getBookListWithFilterSearch(1, 6, selectedGenres, null, null, null, null).size());
+        System.out.println(bd.getBookListWithFilterSearch(1, 6, selectedGenres, 10.0, 20.0, null, null));
+        System.out.println(bd.getBookListWithFilterSearch(1, 6, selectedGenres, null, null, null, null));
     }
 }

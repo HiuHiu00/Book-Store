@@ -34,10 +34,14 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
         <style>
             #suggestions {
+                position: absolute;
                 border: 1px solid #ddd;
                 max-height: 150px;
                 overflow-y: auto;
                 display: none;
+                background-color: white;
+                z-index: 1000;
+                width: 100%;
             }
             #suggestions div {
                 padding: 10px;
@@ -45,6 +49,11 @@
             }
             #suggestions div:hover {
                 background-color: #f0f0f0;
+            }
+            .no-style {
+                all: unset;
+                text-decoration: none;
+                color: inherit;
             }
         </style>
     </head>
@@ -161,7 +170,10 @@
                         <div class="row g-4">
                             <div class="col-xl-3">
                                 <h4>Genres</h4>
-                                <input type="text" class="form-control p-3" id="autocomplete-input" placeholder="Enter genre to find">
+                                <div style="position: relative;">
+                                    <input type="text" class="form-control p-3" id="autocomplete-input" placeholder="Enter genre to find">
+                                    <div id="suggestions"></div>
+                                </div>
                             </div>
                             <div class="col-6"></div>
                             <div class="col-xl-3">
@@ -181,22 +193,18 @@
                                 <div class="row g-4">
                                     <div class="col-lg-12">
                                         <div class="mb-3">
-
-                                            <div id="suggestions"></div>
-                                            
-                                            <div id="selected-genres">
+                                            <div id="selected-genres" style="max-width: 100%; height: 170px; border: 2px solid #28a745; border-radius: 10px; margin-top: 5px; padding-left: 1%;">
                                                 <ul class="list-unstyled fruite-categorie">
                                                     <c:forEach var="genre" items="${sessionScope.genreSelected}">
                                                         <li>
                                                             <div class="d-flex justify-content-between fruite-name">
-                                                                <a href="#"><i class="fas fa-book me-2"></i>${genre}</a>
-                                                                <span>X</span>
+                                                                <a><i class="fas fa-book me-2"></i>${genre}</a>
+                                                                <span><i class="fas fa-times"></i></span>
                                                             </div>
                                                         </li>
                                                     </c:forEach>
                                                 </ul>
                                             </div>
-                                            
                                         </div>
                                     </div>
                                     <!--                                    <div class="col-lg-12">
@@ -205,107 +213,119 @@
                                                                                 <input type="range" class="form-range w-100" id="rangeInput" name="rangeInput" min="0" max="500" value="0" oninput="amount.value=rangeInput.value">
                                                                                 <output id="amount" name="amount" min-velue="0" max-value="500" for="rangeInput">0</output>
                                                                             </div>
-                                                                        </div>
-                                                                        <div class="col-lg-12">
-                                                                            <div class="mb-3">
-                                                                                <h4>Additional</h4>
-                                                                                <div class="mb-2">
-                                                                                    <input type="radio" class="me-2" id="Categories-1" name="Categories-1" value="Beverages">
-                                                                                    <label for="Categories-1"> Organic</label>
-                                                                                </div>
-                                                                                <div class="mb-2">
-                                                                                    <input type="radio" class="me-2" id="Categories-2" name="Categories-1" value="Beverages">
-                                                                                    <label for="Categories-2"> Fresh</label>
-                                                                                </div>
-                                                                                <div class="mb-2">
-                                                                                    <input type="radio" class="me-2" id="Categories-3" name="Categories-1" value="Beverages">
-                                                                                    <label for="Categories-3"> Sales</label>
-                                                                                </div>
-                                                                                <div class="mb-2">
-                                                                                    <input type="radio" class="me-2" id="Categories-4" name="Categories-1" value="Beverages">
-                                                                                    <label for="Categories-4"> Discount</label>
-                                                                                </div>
-                                                                                <div class="mb-2">
-                                                                                    <input type="radio" class="me-2" id="Categories-5" name="Categories-1" value="Beverages">
-                                                                                    <label for="Categories-5"> Expired</label>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-lg-12">
-                                                                            <h4 class="mb-3">Featured products</h4>
-                                                                            <div class="d-flex align-items-center justify-content-start">
-                                                                                <div class="rounded me-4" style="width: 100px; height: 100px;">
-                                                                                    <img src="img/featur-1.jpg" class="img-fluid rounded" alt="">
-                                                                                </div>
-                                                                                <div>
-                                                                                    <h6 class="mb-2">Big Banana</h6>
-                                                                                    <div class="d-flex mb-2">
-                                                                                        <i class="fa fa-star text-secondary"></i>
-                                                                                        <i class="fa fa-star text-secondary"></i>
-                                                                                        <i class="fa fa-star text-secondary"></i>
-                                                                                        <i class="fa fa-star text-secondary"></i>
-                                                                                        <i class="fa fa-star"></i>
-                                                                                    </div>
-                                                                                    <div class="d-flex mb-2">
-                                                                                        <h5 class="fw-bold me-2">2.99 $</h5>
-                                                                                        <h5 class="text-danger text-decoration-line-through">4.11 $</h5>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="d-flex align-items-center justify-content-start">
-                                                                                <div class="rounded me-4" style="width: 100px; height: 100px;">
-                                                                                    <img src="img/featur-2.jpg" class="img-fluid rounded" alt="">
-                                                                                </div>
-                                                                                <div>
-                                                                                    <h6 class="mb-2">Big Banana</h6>
-                                                                                    <div class="d-flex mb-2">
-                                                                                        <i class="fa fa-star text-secondary"></i>
-                                                                                        <i class="fa fa-star text-secondary"></i>
-                                                                                        <i class="fa fa-star text-secondary"></i>
-                                                                                        <i class="fa fa-star text-secondary"></i>
-                                                                                        <i class="fa fa-star"></i>
-                                                                                    </div>
-                                                                                    <div class="d-flex mb-2">
-                                                                                        <h5 class="fw-bold me-2">2.99 $</h5>
-                                                                                        <h5 class="text-danger text-decoration-line-through">4.11 $</h5>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="d-flex align-items-center justify-content-start">
-                                                                                <div class="rounded me-4" style="width: 100px; height: 100px;">
-                                                                                    <img src="img/featur-3.jpg" class="img-fluid rounded" alt="">
-                                                                                </div>
-                                                                                <div>
-                                                                                    <h6 class="mb-2">Big Banana</h6>
-                                                                                    <div class="d-flex mb-2">
-                                                                                        <i class="fa fa-star text-secondary"></i>
-                                                                                        <i class="fa fa-star text-secondary"></i>
-                                                                                        <i class="fa fa-star text-secondary"></i>
-                                                                                        <i class="fa fa-star text-secondary"></i>
-                                                                                        <i class="fa fa-star"></i>
-                                                                                    </div>
-                                                                                    <div class="d-flex mb-2">
-                                                                                        <h5 class="fw-bold me-2">2.99 $</h5>
-                                                                                        <h5 class="text-danger text-decoration-line-through">4.11 $</h5>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="d-flex justify-content-center my-4">
-                                                                                <a href="#" class="btn border border-secondary px-4 py-3 rounded-pill text-primary w-100">Vew More</a>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="col-lg-12">
-                                                                            <div class="position-relative">
-                                                                                <img src="img/banner-fruits.jpg" class="img-fluid w-100 rounded" alt="">
-                                                                                <div class="position-absolute" style="top: 50%; right: 10px; transform: translateY(-50%);">
-                                                                                    <h3 class="text-secondary fw-bold">Fresh <br> Fruits <br> Banner</h3>
-                                                                                </div>
-                                                                            </div>
                                                                         </div>-->
+                                    <div class="col-lg-12">
+                                        <div class="mb-3">
+                                            <h4>Price Range Select</h4>
+                                            <div class="mb-2">
+                                                <input type="radio" class="me-2" value="0" id="priceRange0" name="priceRange" <c:if test='${currentPriceSelected == 0}'>checked</c:if>>
+                                                    <label for="Categories-1"> All</label>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <input type="radio" class="me-2" value="1" id="priceRange1" name="priceRange" <c:if test='${currentPriceSelected == 1}'>checked</c:if>>
+                                                    <label for="Categories-2"> 0$ - 20$</label>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <input type="radio" class="me-2" value="2" id="priceRange2" name="priceRange" <c:if test='${currentPriceSelected == 2}'>checked</c:if>>
+                                                    <label for="Categories-3"> 20$ - 50$</label>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <input type="radio" class="me-2" value="3" id="priceRange3" name="priceRange" <c:if test='${currentPriceSelected == 3}'>checked</c:if>>
+                                                    <label for="Categories-4"> 50$ - 100$</label>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <input type="radio" class="me-2" value="4" id="priceRange4" name="priceRange" <c:if test='${currentPriceSelected == 4}'>checked</c:if>>
+                                                    <label for="Categories-5"> >100$ </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <script>
+                                            function sendPriceRange() {
+                                                var selectedValue = document.querySelector('input[name="priceRange"]:checked').value;
+                                                var url = 'browse?action=productList&selectedPrice=' + encodeURIComponent(selectedValue);
+                                                window.location.href = url;
+                                            }
+
+                                            var radioButtons = document.querySelectorAll('input[name="priceRange"]');
+                                            radioButtons.forEach(function (radio) {
+                                                radio.addEventListener('change', sendPriceRange);
+                                            });
+                                        </script>
+                                        <!--                                    <div class="col-lg-12">
+                                                                                <h4 class="mb-3">Featured products</h4>
+                                                                                <div class="d-flex align-items-center justify-content-start">
+                                                                                    <div class="rounded me-4" style="width: 100px; height: 100px;">
+                                                                                        <img src="img/featur-1.jpg" class="img-fluid rounded" alt="">
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <h6 class="mb-2">Big Banana</h6>
+                                                                                        <div class="d-flex mb-2">
+                                                                                            <i class="fa fa-star text-secondary"></i>
+                                                                                            <i class="fa fa-star text-secondary"></i>
+                                                                                            <i class="fa fa-star text-secondary"></i>
+                                                                                            <i class="fa fa-star text-secondary"></i>
+                                                                                            <i class="fa fa-star"></i>
+                                                                                        </div>
+                                                                                        <div class="d-flex mb-2">
+                                                                                            <h5 class="fw-bold me-2">2.99 $</h5>
+                                                                                            <h5 class="text-danger text-decoration-line-through">4.11 $</h5>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="d-flex align-items-center justify-content-start">
+                                                                                    <div class="rounded me-4" style="width: 100px; height: 100px;">
+                                                                                        <img src="img/featur-2.jpg" class="img-fluid rounded" alt="">
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <h6 class="mb-2">Big Banana</h6>
+                                                                                        <div class="d-flex mb-2">
+                                                                                            <i class="fa fa-star text-secondary"></i>
+                                                                                            <i class="fa fa-star text-secondary"></i>
+                                                                                            <i class="fa fa-star text-secondary"></i>
+                                                                                            <i class="fa fa-star text-secondary"></i>
+                                                                                            <i class="fa fa-star"></i>
+                                                                                        </div>
+                                                                                        <div class="d-flex mb-2">
+                                                                                            <h5 class="fw-bold me-2">2.99 $</h5>
+                                                                                            <h5 class="text-danger text-decoration-line-through">4.11 $</h5>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="d-flex align-items-center justify-content-start">
+                                                                                    <div class="rounded me-4" style="width: 100px; height: 100px;">
+                                                                                        <img src="img/featur-3.jpg" class="img-fluid rounded" alt="">
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <h6 class="mb-2">Big Banana</h6>
+                                                                                        <div class="d-flex mb-2">
+                                                                                            <i class="fa fa-star text-secondary"></i>
+                                                                                            <i class="fa fa-star text-secondary"></i>
+                                                                                            <i class="fa fa-star text-secondary"></i>
+                                                                                            <i class="fa fa-star text-secondary"></i>
+                                                                                            <i class="fa fa-star"></i>
+                                                                                        </div>
+                                                                                        <div class="d-flex mb-2">
+                                                                                            <h5 class="fw-bold me-2">2.99 $</h5>
+                                                                                            <h5 class="text-danger text-decoration-line-through">4.11 $</h5>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="d-flex justify-content-center my-4">
+                                                                                    <a href="#" class="btn border border-secondary px-4 py-3 rounded-pill text-primary w-100">Vew More</a>
+                                                                                </div>
+                                                                            </div>-->
+                                        <!--                                    <div class="col-lg-12">
+                                                                                <div class="position-relative">
+                                                                                    <img src="img/banner-fruits.jpg" class="img-fluid w-100 rounded" alt="">
+                                                                                    <div class="position-absolute" style="top: 50%; right: 10px; transform: translateY(-50%);">
+                                                                                        <h3 class="text-secondary fw-bold">Fresh <br> Fruits <br> Banner</h3>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>-->
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-lg-9">
-                                <div class="row g-4 justify-content-center">
+                                <div class="col-lg-9">
+                                    <div class="row g-4 justify-content-center">
                                     <c:forEach items="${bookList}" var="bl">
                                         <div class="col-md-6 col-lg-6 col-xl-4">
                                             <div class="rounded position-relative fruite-item">
@@ -460,31 +480,30 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
         <script>
-            const genreList = ${requestScope.book_genre_name_list};
-            const input = document.getElementById('autocomplete-input');
-            const suggestionBox = document.getElementById('suggestions');
+                const genreList = ${requestScope.book_genre_name_list};
+                const input = document.getElementById('autocomplete-input');
+                const suggestionBox = document.getElementById('suggestions');
 
-            input.addEventListener('input', function () {
-                const query = input.value.toLowerCase();
-                suggestionBox.innerHTML = '';
-                if (query) {
-                    const filteredSuggestions = genreList.filter(item => item.toLowerCase().includes(query));
-                    filteredSuggestions.forEach(suggestion => {
-                        const div = document.createElement('div');
-                        div.textContent = suggestion;
-                        div.addEventListener('click', function () {
-                            input.value = suggestion;
-                            suggestionBox.style.display = 'none';
-                            window.location.href = 'browse?action=productList&addGenre=' + encodeURIComponent(suggestion);
+                input.addEventListener('input', function () {
+                    const query = input.value.toLowerCase();
+                    suggestionBox.innerHTML = '';
+                    if (query) {
+                        const filteredSuggestions = genreList.filter(item => item.toLowerCase().includes(query));
+                        filteredSuggestions.forEach(suggestion => {
+                            const div = document.createElement('div');
+                            div.textContent = suggestion;
+                            div.addEventListener('click', function () {
+                                input.value = suggestion;
+                                suggestionBox.style.display = 'none';
+                                window.location.href = 'browse?action=productList&addGenre=' + encodeURIComponent(suggestion);
+                            });
+                            suggestionBox.appendChild(div);
                         });
-                        suggestionBox.appendChild(div);
-                    });
-                    suggestionBox.style.display = 'block';
-                } else {
-                    suggestionBox.style.display = 'none';
-                }
-            });
-            
+                        suggestionBox.style.display = 'block';
+                    } else {
+                        suggestionBox.style.display = 'none';
+                    }
+                });
         </script>
         <script>
             $(document).ready(function () {
