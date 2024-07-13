@@ -145,35 +145,47 @@
                             <div class="col-6"></div>
                             <div class="col-xl-3">
                                 <div class="bg-light ps-3 py-3 rounded d-flex justify-content-between mb-4">
-                                    <label for="fruits">Default Sorting:</label>
-                                    <select id="fruits" name="fruitlist" class="border-0 form-select-sm bg-light me-3" form="fruitform">
-                                        <option value="0">Nothing</option>
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                    </select>
+                                    <label for="sortingOptions">Default Sorting:</label>
+                                    <select id="sortingOptions" name="sortingOptions" class="border-0 form-select-sm bg-light me-3" form="fruitform">
+                                        <option value="Nothing" <c:if test='${sessionScope.currentSortOptionSelected == "Nothing"}'>selected</c:if>>Nothing</option>
+                                        <option value="AtoZ" <c:if test='${sessionScope.currentSortOptionSelected == "AtoZ"}'>selected</c:if>>A-Z</option>
+                                        <option value="ZtoA" <c:if test='${sessionScope.currentSortOptionSelected == "ZtoA"}'>selected</c:if>>Z-A</option>
+                                        <option value="IncrementPrice" <c:if test='${sessionScope.currentSortOptionSelected == "IncrementPrice"}'>selected</c:if>>&uarr; Price</option>
+                                        <option value="DecrementPrice" <c:if test='${sessionScope.currentSortOptionSelected == "DecrementPrice"}'>selected</c:if>>&darr; Price</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="row g-4">
-                            <div class="col-lg-3">
-                                <div class="row g-4">
-                                    <div class="col-lg-12">
-                                        <div class="mb-3">
-                                            <div id="selected-genres" style="max-width: 100%; height: 170px; border: 2px solid #28a745; border-radius: 10px; margin-top: 5px; padding:  1% 3%;">
-                                                <style>
-                                                    .genre-choose li {
-                                                        transition: box-shadow 0.3s ease, background-color 0.3s ease;
-                                                    }
 
-                                                    .genre-choose li:hover {
-                                                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-                                                        background-color: #f0f0f0;
-                                                        cursor: pointer;
-                                                        border-radius: 10px;
-                                                    }
-                                                </style>
-                                                <ul class="list-unstyled fruite-categorie genre-choose">
+                                <script>
+                                    function sendSortingOption() {
+                                        var selectedSortingOption = document.getElementById('sortingOptions').value;
+                                        var url = 'browse?action=productList&sortingOption=' + encodeURIComponent(selectedSortingOption);
+                                        window.location.href = url;
+                                    }
+
+                                    var sortingSelect = document.getElementById('sortingOptions');
+                                    sortingSelect.addEventListener('change', sendSortingOption);
+                                </script>
+                            </div>
+                            <div class="row g-4">
+                                <div class="col-lg-3">
+                                    <div class="row g-4">
+                                        <div class="col-lg-12">
+                                            <div class="mb-3">
+                                                <div id="selected-genres" style="max-width: 100%; height: 170px; border: 2px solid #28a745; border-radius: 10px; margin-top: 5px; padding:  1% 3%;">
+                                                    <style>
+                                                        .genre-choose li {
+                                                            transition: box-shadow 0.3s ease, background-color 0.3s ease;
+                                                        }
+
+                                                        .genre-choose li:hover {
+                                                            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                                                            background-color: #f0f0f0;
+                                                            cursor: pointer;
+                                                            border-radius: 10px;
+                                                        }
+                                                    </style>
+                                                    <ul class="list-unstyled fruite-categorie genre-choose">
                                                     <c:forEach var="genre" items="${sessionScope.genreSelected}">
                                                         <li onclick="removeGenre('${genre}')">
                                                             <div class="d-flex justify-content-between fruite-name">
@@ -215,48 +227,103 @@
                                             window.location.href = 'browse?action=productList&removeGenre=' + encodeURIComponent(genre);
                                         }
                                     </script>
+                                    <hr style="border-top: 2px solid #28a745;">
                                     <div class="col-lg-12">
                                         <div class="mb-3">
                                             <h4>Featured Price Range</h4>
                                             <div class="mb-2">
-                                                <input type="radio" class="me-2" value="0" id="priceRange0" name="priceRange" <c:if test='${currentPriceSelected == 0}'>checked</c:if>>
-                                                    <label for="Categories-1"> All</label>
+                                                <input type="radio" class="me-2" value="Level0" id="priceRangeAll" name="priceRange" 
+                                                       <c:if test='${sessionScope.currentPriceRangeLevelSelected == "Level0"}'>checked</c:if>>
+                                                       <label for="priceRangeAll">All</label>
                                                 </div>
+                                            <c:forEach var="price" items="${priceRanges}">
                                                 <div class="mb-2">
-                                                    <input type="radio" class="me-2" value="1" id="priceRange1" name="priceRange" <c:if test='${currentPriceSelected == 1}'>checked</c:if>>
-                                                    <label for="Categories-2"> 0$ - 20$</label>
+                                                    <input type="radio" class="me-2" value="${price.value}" id="priceRange${price.value}" name="priceRange" 
+                                                           <c:if test='${sessionScope.currentPriceRangeLevelSelected == price.value}'>checked</c:if>>
+                                                    <label for="priceRange${price.value}">${price.label}</label>
                                                 </div>
-                                                <div class="mb-2">
-                                                    <input type="radio" class="me-2" value="2" id="priceRange2" name="priceRange" <c:if test='${currentPriceSelected == 2}'>checked</c:if>>
-                                                    <label for="Categories-3"> 20$ - 50$</label>
-                                                </div>
-                                                <div class="mb-2">
-                                                    <input type="radio" class="me-2" value="3" id="priceRange3" name="priceRange" <c:if test='${currentPriceSelected == 3}'>checked</c:if>>
-                                                    <label for="Categories-4"> 50$ - 100$</label>
-                                                </div>
-                                                <div class="mb-2">
-                                                    <input type="radio" class="me-2" value="4" id="priceRange4" name="priceRange" <c:if test='${currentPriceSelected == 4}'>checked</c:if>>
-                                                    <label for="Categories-5"> >100$ </label>
-                                                </div>
-                                            </div>
-                                        </div> 
-                                        <script>
-                                            function sendPriceRange() {
-                                                var selectedValue = document.querySelector('input[name="priceRange"]:checked').value;
-                                                var url = 'browse?action=productList&selectedPrice=' + encodeURIComponent(selectedValue);
-                                                window.location.href = url;
-                                            }
-
-                                            var radioButtons = document.querySelectorAll('input[name="priceRange"]');
-                                            radioButtons.forEach(function (radio) {
-                                                radio.addEventListener('change', sendPriceRange);
-                                            });
-                                        </script>
-
+                                            </c:forEach>
+                                        </div>
                                     </div>
+
+                                    <script>
+                                        function sendPriceRange() {
+                                            var selectedPriceRangeLevelValue = document.querySelector('input[name="priceRange"]:checked').value;
+                                            var url = 'browse?action=productList&selectedPriceRangeLevel=' + encodeURIComponent(selectedPriceRangeLevelValue);
+                                            window.location.href = url;
+                                        }
+
+                                        var priceRangeLevelradioButtons = document.querySelectorAll('input[name="priceRange"]');
+                                        priceRangeLevelradioButtons.forEach(function (radio) {
+                                            radio.addEventListener('change', sendPriceRange);
+                                        });
+                                    </script>
+                                    <hr style="border-top: 2px solid #28a745;">
+                                    <div class="col-lg-12">
+                                        <div class="mb-3">
+                                            <h4>Featured Author</h4>
+                                            <div class="mb-2">
+                                                <input type="radio" class="me-2" value="authorAll" id="authorAll" name="authorName" 
+                                                       <c:if test='${sessionScope.currentAuthorSelected == "authorAll"}'>checked</c:if>>
+                                                       <label for="authorAll">All</label>
+                                                </div>
+                                            <c:forEach var="author" items="${authorList}">
+                                                <div class="mb-2">
+                                                    <input type="radio" class="me-2" value="${author.authorName}" id="author${author.authorName}" name="authorName" 
+                                                           <c:if test='${sessionScope.currentAuthorSelected == author.authorName}'>checked</c:if>>
+                                                    <label for="author${author.authorName}">${author.authorName}</label>
+                                                </div>
+                                            </c:forEach>
+                                        </div>
+                                    </div>
+
+                                    <script>
+                                        function sendAuthorName() {
+                                            var selectedAuthor = document.querySelector('input[name="authorName"]:checked').value;
+                                            var url = 'browse?action=productList&selectedAuthor=' + encodeURIComponent(selectedAuthor);
+                                            window.location.href = url;
+                                        }
+
+                                        var authorRadioButtons = document.querySelectorAll('input[name="authorName"]');
+                                        authorRadioButtons.forEach(function (radio) {
+                                            radio.addEventListener('change', sendAuthorName);
+                                        });
+                                    </script>
+                                    <hr style="border-top: 2px solid #28a745;">
+                                    <div class="col-lg-12">
+                                        <div class="mb-3">
+                                            <h4>Featured Publisher</h4>
+                                            <div class="mb-2">
+                                                <input type="radio" class="me-2" value="publisherAll" id="publisherAll" name="publisherName" 
+                                                       <c:if test='${sessionScope.currentPublisherSelected == "publisherAll"}'>checked</c:if>>
+                                                       <label for="publisherAll">All</label>
+                                                </div>
+                                            <c:forEach var="publisher" items="${publisherList}">
+                                                <div class="mb-2">
+                                                    <input type="radio" class="me-2" value="${publisher.publisherName}" id="publisher${publisher.publisherName}" name="publisherName" 
+                                                           <c:if test='${sessionScope.currentPublisherSelected == publisher.publisherName}'>checked</c:if>>
+                                                    <label for="publisher${publisher.publisherName}">${publisher.publisherName}</label>
+                                                </div>
+                                            </c:forEach>
+                                        </div>
+                                    </div>
+
+                                    <script>
+                                        function sendPublisherName() {
+                                            var selectedPublisher = document.querySelector('input[name="publisherName"]:checked').value;
+                                            var url = 'browse?action=productList&selectedPublisher=' + encodeURIComponent(selectedPublisher);
+                                            window.location.href = url;
+                                        }
+
+                                        var publisherRadioButtons = document.querySelectorAll('input[name="publisherName"]');
+                                        publisherRadioButtons.forEach(function (radio) {
+                                            radio.addEventListener('change', sendPublisherName);
+                                        });
+                                    </script>
                                 </div>
-                                <div class="col-lg-9">
-                                    <div class="row g-4 justify-content-center">
+                            </div>
+                            <div class="col-lg-9">
+                                <div class="row g-4 justify-content-center">
                                     <c:choose>
                                         <c:when test="${not empty noBook}">
                                             <div class="text-center" style="padding: 20px; ">
@@ -291,26 +358,6 @@
                                                 </div>
                                             </c:forEach>
 
-                                            <nav aria-label="Page navigation example" style="padding-top: 20px">
-                                                <ul class="pagination" style="display: flex; justify-content: center;">
-                                                    <li class="page-item <c:if test='${currentPage == 1}'>disabled</c:if>'">
-                                                        <a class="page-link" href="browse?action=productList&page=${currentPage - 1}" aria-label="Previous"
-                                                           <span aria-hidden="true">&laquo;</span>
-                                                        </a>
-                                                    </li>
-                                                    <c:forEach var="i" begin="1" end="${totalPages }">
-                                                        <li class="page-item <c:if test='${currentPage == i}'>active</c:if>'">
-                                                            <a class="page-link" href="browse?action=productList&page=${i}"
-                                                               <c:if test='${currentPage == i}'>style="background-color: #28a745; border-color: #28a745; color: white;"</c:if>>${i}</a>
-                                                            </li>
-                                                    </c:forEach>
-                                                    <li class="page-item <c:if test='${currentPage == totalPages}'>disabled</c:if>'">
-                                                        <a class="page-link" href="browse?action=productList&page=${currentPage + 1}" aria-label="Next"
-                                                           <span aria-hidden="true">&raquo;</span>
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </nav>     
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
@@ -420,9 +467,9 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
         <script>
-                                            $(document).ready(function () {
-                                                toastr.options.closeButton = true;
-                                                toastr.options.progressBar = true;
+                                        $(document).ready(function () {
+                                            toastr.options.closeButton = true;
+                                            toastr.options.progressBar = true;
             <%
                    List<String> successMessages = (List<String>) request.getAttribute("successMessages");
                    List<String> infoMessages = (List<String>) request.getAttribute("infoMessages");
@@ -432,28 +479,28 @@
 
             <% if (successMessages != null) { %>
             <% for (String message : successMessages) { %>
-                                                toastr.success('<%= message %>', 'Success', {timeOut: 5000});
+                                            toastr.success('<%= message %>', 'Success', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (infoMessages != null) { %>
             <% for (String message : infoMessages) { %>
-                                                toastr.info('<%= message %>', 'Notification', {timeOut: 5000});
+                                            toastr.info('<%= message %>', 'Notification', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (warningMessages != null) { %>
             <% for (String message : warningMessages) { %>
-                                                toastr.warning('<%= message %>', 'Warning', {timeOut: 5000});
+                                            toastr.warning('<%= message %>', 'Warning', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (errorMessages != null) { %>
             <% for (String message : errorMessages) { %>
-                                                toastr.error('<%= message %>', 'Invalid', {timeOut: 5000});
+                                            toastr.error('<%= message %>', 'Invalid', {timeOut: 5000});
             <% } %>
             <% } %>
-                                            });
+                                        });
         </script>
         <!-- JavaScript Libraries -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>

@@ -47,8 +47,9 @@ public class BrowseDAO {
     }
 
     /**
+     * Retrieves a list of all books.
      *
-     * @return
+     * @return A list of Book objects.
      */
     public List<Book> getBookList() {
         List<Book> bookList = new ArrayList<>();
@@ -91,17 +92,20 @@ public class BrowseDAO {
     }
 
     /**
+     * Retrieves a filtered and paginated list of books based on various search
+     * criteria.
      *
-     * @param pageNumber
-     * @param pageSize
-     * @param genreList
-     * @param minPrice
-     * @param maxPrice
-     * @param authorName
-     * @param publisherName
-     * @return
+     * @param pageNumber The page number for pagination.
+     * @param pageSize The number of items per page.
+     * @param genreList The list of genres to filter by.
+     * @param minPrice The minimum price for price range filtering.
+     * @param maxPrice The maximum price for price range filtering.
+     * @param authorName The author name to filter by.
+     * @param publisherName The publisher name to filter by.
+     * @param sortOption The sorting option for the results.
+     * @return A list of filtered and paginated Book objects.
      */
-    public List<Book> getBookListWithFilterSearch(int pageNumber, int pageSize, List<String> genreList, Double minPrice, Double maxPrice, String authorName, String publisherName) {
+    public List<Book> getBookListWithFilterSearch(int pageNumber, int pageSize, List<String> genreList, Double minPrice, Double maxPrice, String authorName, String publisherName, String sortOption) {
         List<Book> bookList = new ArrayList<>();
         int offset = (pageNumber - 1) * pageSize;
         try {
@@ -143,8 +147,46 @@ public class BrowseDAO {
             if (genreList != null && !genreList.isEmpty()) {
                 queryBuilder.append("HAVING COUNT(DISTINCT g.Genre) = ? ");
             }
+            if (sortOption != null && !sortOption.isEmpty()) {
+                switch (sortOption) {
+                    case "Nothing" -> {
+                        queryBuilder.append("""
+                    ORDER BY b.BookID
+                 """);
+                    }
+                    case "AtoZ" -> {
+                        queryBuilder.append("""
+                    ORDER BY b.Title
+                 """);
+                    }
+                    case "ZtoA" -> {
+                        queryBuilder.append("""
+                    ORDER BY b.Title DESC
+                 """);
+                    }
+                    case "IncrementPrice" -> {
+                        queryBuilder.append("""
+                    ORDER BY b.Price
+                 """);
+                    }
+                    case "DecrementPrice" -> {
+                        queryBuilder.append("""
+                    ORDER BY b.Price DESC
+                 """);
+                    }
+                    default -> {
+                        queryBuilder.append("""
+                    ORDER BY b.BookID
+                 """);
+                    }
+                }
+            } else {
+                queryBuilder.append("""
+                    ORDER BY b.BookID
+                 """);
+            }
             queryBuilder.append("""
-            ORDER BY b.BookID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+             OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
         """);
 
             ps = connection.prepareStatement(queryBuilder.toString());
@@ -161,14 +203,14 @@ public class BrowseDAO {
             }
 
             if (authorName != null && !authorName.isEmpty()) {
-                ps.setString(paramIndex++, "%" + authorName + "%");
+                ps.setString(paramIndex++, authorName);
             }
 
             if (publisherName != null && !publisherName.isEmpty()) {
-                ps.setString(paramIndex++, "%" + publisherName + "%");
+                ps.setString(paramIndex++, publisherName);
             }
             if (genreList != null && !genreList.isEmpty()) {
-                            ps.setInt(paramIndex++, genreList.size());
+                ps.setInt(paramIndex++, genreList.size());
             }
             ps.setInt(paramIndex++, offset);
             ps.setInt(paramIndex++, pageSize);
@@ -203,15 +245,77 @@ public class BrowseDAO {
         }
         return bookList;
     }
-    
+
+    /**
+     * Retrieves a list of all authors.
+     *
+     * @return A list of Author objects.
+     */
+    public List<Author> getAuthorList() {
+        List<Author> authorList = new ArrayList<>();
+        try {
+            connection = DBContext.getConnection();
+            String query = """
+                           SELECT *
+                           FROM Author
+                           """;
+            ps = connection.prepareStatement(query);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Author author = Author.builder()
+                        .AuthorID(rs.getInt("AuthorID"))
+                        .AuthorName(rs.getString("AuthorName"))
+                        .build();
+                authorList.add(author);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        } finally {
+            closeConnection(connection, ps, rs);
+        }
+        return authorList;
+    }
+
+    /**
+     * Retrieves a list of all publishers.
+     *
+     * @return A list of Publisher objects.
+     */
+    public List<Publisher> getPublisherList() {
+        List<Publisher> publisherList = new ArrayList<>();
+        try {
+            connection = DBContext.getConnection();
+            String query = """
+                           SELECT *
+                           FROM Publisher
+                           """;
+            ps = connection.prepareStatement(query);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Publisher publisher = Publisher.builder()
+                        .PublisherName(rs.getString("PublisherName"))
+                        .PublisherImagePath(rs.getString("PublisherImagePath"))
+                        .build();
+                publisherList.add(publisher);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        } finally {
+            closeConnection(connection, ps, rs);
+        }
+        return publisherList;
+    }
 }
 
 class Test {
 
     public static void main(String[] args) {
         BrowseDAO bd = new BrowseDAO();
-        List<String> selectedGenres = Arrays.asList("Fantasy", "Mystery");
-        System.out.println(bd.getBookListWithFilterSearch(1, 6, selectedGenres, 10.0, 20.0, null, null));
-        System.out.println(bd.getBookListWithFilterSearch(1, 6, selectedGenres, null, null, null, null));
+        System.out.println(bd.getAuthorList().size());
+
+        List<Publisher> publisherList = bd.getPublisherList();
+        for (Publisher pub : publisherList) {
+            System.out.println(pub.getPublisherName());
+        }
     }
 }

@@ -1,9 +1,11 @@
 package controller;
 
 import dao.BrowseDAO;
+import entity.Author;
 import entity.Book;
 import entity.Genre;
 import entity.GenreProvider;
+import entity.Publisher;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -13,7 +15,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @WebServlet(name = "Browse", urlPatterns = {"/browse"})
@@ -66,7 +70,10 @@ public class Browse extends HttpServlet {
         if (!"productList".equals(action)) {
             HttpSession session = request.getSession();
             session.removeAttribute("genreSelected");
-            session.removeAttribute("currentPriceSelectedSession");
+            session.removeAttribute("currentPriceRangeLevelSelected");
+            session.removeAttribute("currentAuthorSelected");
+            session.removeAttribute("currentPublisherSelected");
+            session.removeAttribute("currentSortOptionSelected");
         }
         url = switch (action) {
             case "home" -> {
@@ -111,6 +118,14 @@ public class Browse extends HttpServlet {
         }
     }
 
+    /**
+     * Lists books with default pagination and attributes.
+     *
+     * @param request The HttpServletRequest.
+     * @param size The number of items per page.
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
     private void listBookDefault(HttpServletRequest request, int size) throws ServletException, IOException {
         int page = Integer.parseInt(request.getParameter("page") == null ? "1" : request.getParameter("page"));
         clearMessages();
@@ -138,105 +153,243 @@ public class Browse extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("bookList", paginatedBookList);
-
     }
 
+    /**
+     * Lists books with filters applied based on user selections.
+     *
+     * @param request The HttpServletRequest.
+     * @param size The number of items per page.
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
     private void listBookWithFilter(HttpServletRequest request, int size) throws ServletException, IOException {
         clearMessages();
         HttpSession session = request.getSession();
 
-        String genre = request.getParameter("addGenre");
-        List<String> genreSelected = (List<String>) session.getAttribute("genreSelected");
-        if (genreSelected == null) {
-            genreSelected = new ArrayList<>();
-        }
-        if (genre != null) {
-            if (genreSelected.contains(genre)) {
-                warningMessages.add("Duplicate genre!");
-            } else if (genreSelected.size() >= 4) {
-                warningMessages.add("Only 4 genres can be selected");
-            } else {
-                genreSelected.add(genre);
-            }
-            session.setAttribute("genreSelected", genreSelected);
-        }
-
+        String addGenre = request.getParameter("addGenre");
         String removeGenre = request.getParameter("removeGenre");
-        if (removeGenre != null && !removeGenre.isEmpty()) {
-            genreSelected.remove(removeGenre);
-        }
+        List<String> genreSelected = getGenresSelected(session, addGenre, removeGenre);
 
-        String selectedPriceValue = request.getParameter("selectedPrice");
-        Double minPrice = null;
-        Double maxPrice = null;
+        String selectedPriceRangeLevel = request.getParameter("selectedPriceRangeLevel");
+        Map<String, Double> priceRange = getPriceRangeSelected(request, session, selectedPriceRangeLevel);
+        Double minPrice = priceRange.get("minPrice");
+        Double maxPrice = priceRange.get("maxPrice");
 
-        if (selectedPriceValue == null) {
-            if (session.getAttribute("currentPriceSelectedSession") != null) {
-                selectedPriceValue = session.getAttribute("currentPriceSelectedSession").toString();
-            } else {
-                request.setAttribute("currentPriceSelected", 0);
-                session.setAttribute("currentPriceSelectedSession", 0);
-            }
-        }
+        String selectedAuthorValue = request.getParameter("selectedAuthor");
+        String authorName = getAuthorNameSelected(request, session, selectedAuthorValue);
 
-        if (selectedPriceValue != null) {
-            switch (selectedPriceValue) {
-                case "1" -> {
-                    minPrice = 0.0;
-                    maxPrice = 20.0;
-                    request.setAttribute("currentPriceSelected", 1);
-                    session.setAttribute("currentPriceSelectedSession", 1);
-                }
-                case "2" -> {
-                    minPrice = 20.0;
-                    maxPrice = 50.0;
-                    request.setAttribute("currentPriceSelected", 2);
-                    session.setAttribute("currentPriceSelectedSession", 2);
-                }
-                case "3" -> {
-                    minPrice = 50.0;
-                    maxPrice = 100.0;
-                    request.setAttribute("currentPriceSelected", 3);
-                    session.setAttribute("currentPriceSelectedSession", 3);
-                }
-                case "4" -> {
-                    minPrice = 100.0;
-                    maxPrice = 999.0;
-                    request.setAttribute("currentPriceSelected", 4);
-                    session.setAttribute("currentPriceSelectedSession", 4);
-                }
-                default -> {
-                    minPrice = null;
-                    maxPrice = null;
-                    request.setAttribute("currentPriceSelected", 0);
-                    session.setAttribute("currentPriceSelectedSession", 0);
-                }
-            }
-        }
+        String selectedPublisherValue = request.getParameter("selectedPublisher");
+        String publisherName = getPublisherNameSelected(request, session, selectedPublisherValue);
 
+        String sortingOptionValue = request.getParameter("sortingOption");
+        String sortingOption = getSortOption(request, session, sortingOptionValue);
         int page = Integer.parseInt(request.getParameter("page") == null ? "1" : request.getParameter("page"));
-        List<Book> bookList = bd.getBookList();
-        int totalItems = bookList.size();
-        int totalPages;
-        if (totalItems != 0) {
-            totalPages = (int) Math.ceil((double) totalItems / size);
-        } else {
-            totalPages = 1;
-        }
-        if (page < 1) {
-            page = 1;
-        } else if (page > totalPages) {
-            page = totalPages;
-        }
-        List<Book> FilterSearchBookList = bd.getBookListWithFilterSearch(page, size, genreSelected, minPrice, maxPrice, null, null);
+        List<Book> FilterSearchBookList = bd.getBookListWithFilterSearch(page, size, genreSelected, minPrice, maxPrice, authorName, publisherName, sortingOption);
+
         if (null == FilterSearchBookList || FilterSearchBookList.isEmpty()) {
             request.setAttribute("noBook", "There are no books matching your featured search!");
         }
-        request.setAttribute("currentPage", page);
-        request.setAttribute("totalPages", totalPages);
 
         request.setAttribute("bookList", FilterSearchBookList);
         addMessages(request);
     }
 
+    /**
+     * Retrieves selected genres from session and updates them based on user
+     * actions.
+     *
+     * @param session The HttpSession.
+     * @param addGenre The genre to add.
+     * @param removeGenre The genre to remove.
+     * @return The updated list of selected genres.
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    private List<String> getGenresSelected(HttpSession session, String addGenre, String removeGenre) throws ServletException, IOException {
+        List<String> genreSelected = (List<String>) session.getAttribute("genreSelected");
+        if (genreSelected == null) {
+            genreSelected = new ArrayList<>();
+        }
+        if (addGenre != null) {
+            if (genreSelected.contains(addGenre)) {
+                warningMessages.add("Duplicate genre!");
+            } else if (genreSelected.size() >= 4) {
+                warningMessages.add("Only 4 genres can be selected");
+            } else {
+                genreSelected.add(addGenre);
+            }
+            session.setAttribute("genreSelected", genreSelected);
+        }
+
+        if (removeGenre != null && !removeGenre.isEmpty()) {
+            genreSelected.remove(removeGenre);
+        }
+        return genreSelected;
+    }
+
+    /**
+     * Retrieves the selected price range level and its corresponding price
+     * range from session or request parameters.
+     *
+     * @param request The HttpServletRequest.
+     * @param session The HttpSession.
+     * @param selectedPriceRangeLevel The selected price range level.
+     * @return A map containing the minimum and maximum prices.
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    private Map<String, Double> getPriceRangeSelected(HttpServletRequest request, HttpSession session, String selectedPriceRangeLevel) throws ServletException, IOException {
+        Double minPrice = null;
+        Double maxPrice = null;
+
+        if (selectedPriceRangeLevel == null || selectedPriceRangeLevel.isEmpty()) {
+            selectedPriceRangeLevel = (String) session.getAttribute("currentPriceRangeLevelSelected");
+            if (selectedPriceRangeLevel == null) {
+                selectedPriceRangeLevel = "Level0";
+            }
+        }
+
+        switch (selectedPriceRangeLevel) {
+            case "Level1" -> {
+                minPrice = 0.0;
+                maxPrice = 20.0;
+                session.setAttribute("currentPriceRangeLevelSelected", "Level1");
+            }
+            case "Level2" -> {
+                minPrice = 20.0;
+                maxPrice = 50.0;
+                session.setAttribute("currentPriceRangeLevelSelected", "Level2");
+            }
+            case "Level3" -> {
+                minPrice = 50.0;
+                maxPrice = 100.0;
+                session.setAttribute("currentPriceRangeLevelSelected", "Level3");
+            }
+            case "Level4" -> {
+                minPrice = 100.0;
+                maxPrice = 999.0;
+                session.setAttribute("currentPriceRangeLevelSelected", "Level4");
+            }
+            default -> {
+                session.setAttribute("currentPriceRangeLevelSelected", "Level0");
+            }
+        }
+
+        request.setAttribute("currentPriceRangeLevelSelected", selectedPriceRangeLevel);
+
+        List<Map<String, String>> priceRangesLevel = List.of(
+                Map.of("value", "Level1", "label", "0$ - 20$"),
+                Map.of("value", "Level2", "label", "20$ - 50$"),
+                Map.of("value", "Level3", "label", "50$ - 100$"),
+                Map.of("value", "Level4", "label", ">100$")
+        );
+        request.setAttribute("priceRanges", priceRangesLevel);
+
+        Map<String, Double> priceRange = new HashMap<>();
+        priceRange.put("minPrice", minPrice);
+        priceRange.put("maxPrice", maxPrice);
+
+        return priceRange;
+    }
+
+    /**
+     * Retrieves the selected author's name based on user selection.
+     *
+     * @param request The HttpServletRequest.
+     * @param session The HttpSession.
+     * @param selectedAuthorValue The selected author's value.
+     * @return The selected author's name.
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    private String getAuthorNameSelected(HttpServletRequest request, HttpSession session, String selectedAuthorValue) throws ServletException, IOException {
+        String authorName = null;
+        List<Author> authorList = bd.getAuthorList();
+        request.setAttribute("authorList", authorList);
+        if (selectedAuthorValue == null || selectedAuthorValue.isEmpty()) {
+            selectedAuthorValue = (String) session.getAttribute("currentAuthorSelected");
+            if (selectedAuthorValue == null) {
+                selectedAuthorValue = "authorAll";
+            }
+        }
+        if ("authorAll".equals(selectedAuthorValue)) {
+            session.setAttribute("currentAuthorSelected", "authorAll");
+        } else {
+            for (Author author : authorList) {
+                if (selectedAuthorValue.equals(author.getAuthorName())) {
+                    session.setAttribute("currentAuthorSelected", author.getAuthorName());
+                    authorName = author.getAuthorName();
+                    break;
+                }
+            }
+        }
+        return authorName;
+    }
+
+    /**
+     * Retrieves the selected publisher's name based on user selection.
+     *
+     * @param request The HttpServletRequest.
+     * @param session The HttpSession.
+     * @param selectedPublisherValue The selected publisher's value.
+     * @return The selected publisher's name.
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    private String getPublisherNameSelected(HttpServletRequest request, HttpSession session, String selectedPublisherValue) throws ServletException, IOException {
+        String publisherName = null;
+        List<Publisher> publisherList = bd.getPublisherList();
+        request.setAttribute("publisherList", publisherList);
+        if (selectedPublisherValue == null || selectedPublisherValue.isEmpty()) {
+            selectedPublisherValue = (String) session.getAttribute("currentPublisherSelected");
+            if (selectedPublisherValue == null) {
+                selectedPublisherValue = "publisherAll";
+            }
+        }
+        if ("publisherAll".equals(selectedPublisherValue)) {
+            session.setAttribute("currentPublisherSelected", "publisherAll");
+        } else {
+            for (Publisher publisher : publisherList) {
+                if (selectedPublisherValue.equals(publisher.getPublisherName())) {
+                    session.setAttribute("currentPublisherSelected", publisher.getPublisherName());
+                    publisherName = publisher.getPublisherName();
+                    break;
+                }
+            }
+        }
+        return publisherName;
+    }
+
+    /**
+     * Retrieves the selected sorting option from session or request parameters.
+     *
+     * @param request The HttpServletRequest.
+     * @param session The HttpSession.
+     * @param sortingOptionValue The selected sorting option.
+     * @return The selected sorting option.
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    private String getSortOption(HttpServletRequest request, HttpSession session, String sortingOptionValue) throws ServletException, IOException {
+        if (sortingOptionValue == null || sortingOptionValue.isEmpty()) {
+            sortingOptionValue = (String) session.getAttribute("currentSortOptionSelected");
+            if (sortingOptionValue == null) {
+                sortingOptionValue = "Nothing";
+            }
+        }
+
+        switch (sortingOptionValue) {
+            case "AtoZ", "ZtoA", "IncrementPrice", "DecrementPrice" ->
+                session.setAttribute("currentSortOptionSelected", sortingOptionValue);
+            default -> {
+                session.setAttribute("currentSortOptionSelected", "Nothing");
+                sortingOptionValue = "Nothing";
+            }
+        }
+
+        request.setAttribute("currentSortOptionSelected", sortingOptionValue);
+
+        return sortingOptionValue;
+    }
 }
