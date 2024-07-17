@@ -32,7 +32,14 @@
         <!-- Template Stylesheet -->
         <link href="assets/Template2/css/style.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+        <style>
 
+            .no-style {
+                all: unset;
+                text-decoration: none;
+                color: inherit;
+            }
+        </style>
     </head>
 
     <body>
@@ -79,9 +86,9 @@
                         </div>
                         <div class="d-flex m-3 me-0">
                             <!--<button class="btn-search btn border border-secondary btn-md-square rounded-circle bg-white me-4" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="fas fa-search text-primary"></i></button>-->
-                            <a href="#" class="position-relative me-4 my-auto">
+                            <a href="#" class="position-relative me-4 my-auto" data-bs-toggle="modal" data-bs-target="#cartModal">
                                 <i class="fa fa-shopping-bag fa-2x"></i>
-                                <span class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style="top: -5px; left: 15px; height: 20px; min-width: 20px;">0</span>
+                                <span class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style="top: -5px; left: 15px; height: 20px; min-width: 20px;">${requestScope.cartProductCount}</span>
                             </a>
                             <div class="nav-item dropdown">
                                 <a href="#" class="my-auto nav-link"> <i class="fas fa-user fa-2x"></i> </a>
@@ -105,26 +112,74 @@
         </div>
         <!-- Navbar End -->
 
-
-        <!--         Modal Search Start 
-                <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-fullscreen">
-                        <div class="modal-content rounded-0">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLabel">Search by keyword</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body d-flex align-items-center">
-                                <div class="input-group w-75 mx-auto d-flex">
-                                    <input type="search" class="form-control p-3" placeholder="keywords" aria-describedby="search-icon-1">
-                                    <span id="search-icon-1" class="input-group-text p-3"><i class="fa fa-search"></i></span>
+        <!--Modal Start--> 
+        <style>
+            .modal-dialog-right {
+                position: absolute;
+                top: 0;
+                right: 0;
+                margin: 0;
+                height: 100%;
+            }
+            .modal-dialog-scrollable {
+                max-height: 100%;
+                width: 30%;
+            }
+            .book-image img {
+                max-width: 100%;
+                height: auto;
+            }
+            .book-info p {
+                margin: 0;
+            }
+        </style>
+        <div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-dialog-right">
+                <div class="modal-content" style="height: 100%">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="cartModalLabel">Your Cart</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Your cart content goes here -->
+                        <c:choose>
+                            <c:when test="${not empty sessionScope.isLoggedIn}">          
+                                <ul class="list-group">
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <div class="book-image" style="flex: 0 0 20%;">
+                                            <img src="assets/Template2/images/npic.jpg" alt="Book 1" class="img-fluid">
+                                        </div>
+                                        <div class="book-info ms-3" style="flex: 0 0 70%;">
+                                            <p class="mb-1">Tên sách: Book 1</p>
+                                            <p class="mb-1">Giá: $10</p>
+                                            <p class="mb-1">Số lượng: 1</p>
+                                        </div>
+                                        <div class="remove-button ms-auto" style="flex: 0 0 10%;">
+                                            <button class="btn btn-danger btn-sm rounded-circle">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </li>
+                                    
+                                </ul>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="text-center" style="padding: 20px; ">
+                                    <h2><img style="max-width: 20%" src="assets/Template2/images/npic.jpg" alt="thumbnail_not_found">
+                                        <strong>You must have an account or log in to have your own shopping cart</strong>
+                                    </h2>
                                 </div>
-                            </div>
-                        </div>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" style="width: 100%" class="btn btn-secondary" data-bs-dismiss="modal">Checkout</button>
+                        <button type="button" style="width: 100%" class="btn btn-secondary" data-bs-dismiss="modal">Buy Now</button>
                     </div>
                 </div>
-                 Modal Search End -->
-
+            </div>
+        </div>
+        <!--Modal End--> 
 
         <!-- Hero Start -->
         <div class="container-fluid py-5 mb-5 hero-header">
@@ -217,7 +272,6 @@
                 </div>
                  Featurs Section End -->
 
-
         <!-- Fruits Shop Start-->
         <div class="container-fluid fruite py-5">
             <div class="container py-5">
@@ -264,27 +318,57 @@
                                     <div class="row g-4">
                                         <c:forEach items="${bookList}" var="bl">
                                             <div class="col-md-6 col-lg-4 col-xl-3">
-                                                <div class="rounded position-relative fruite-item">
-                                                    <div class="fruite-img">
-                                                        <img src="assets/Template2/${bl.cover_imagePath}" class="img-fluid w-100 rounded-top" alt="">
-                                                    </div>
-                                                    <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">${bl.ISBN13}</div>
-                                                    <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                        <h4>${bl.title}</h4>
-                                                        <p><c:choose>
-                                                                <c:when test="${fn:length(bl.description) <= 350}">
-                                                                    ${bl.description}
-                                                                </c:when>
-                                                                <c:otherwise>
-                                                                    ${fn:substring(bl.description, 0, 350)}...
-                                                                </c:otherwise>
-                                                            </c:choose></p>
-                                                        <div class="d-flex justify-content-between flex-lg-wrap">
-                                                            <p class="text-dark fs-5 fw-bold mb-0">${bl.price}$</p>
-                                                            <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                                <a href="browse?action=bookDetail&bookID=${bl.bookID}" class="no-style">
+
+                                                    <div class="rounded position-relative fruite-item">
+                                                        <div class="fruite-img">
+                                                            <img src="assets/Template2/${bl.cover_imagePath}" class="img-fluid w-100 rounded-top" alt="">
+                                                        </div>
+                                                        <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">${bl.ISBN13}</div>
+                                                        <div class="p-4 border border-secondary border-top-0 rounded-bottom">
+                                                            <h4>${bl.title}</h4>
+                                                            <p><c:choose>
+                                                                    <c:when test="${fn:length(bl.description) <= 250}">
+                                                                        ${bl.description}
+                                                                    </c:when>
+                                                                    <c:otherwise>
+                                                                        ${fn:substring(bl.description, 0, 250)}...
+                                                                    </c:otherwise>
+                                                                </c:choose></p>
+                                                            <div class="d-flex justify-content-between flex-lg-wrap">
+                                                                <c:choose>
+                                                                    <c:when test="${bl.discount.discountPercent eq 0}">
+                                                                        <p class="text-dark fs-5 fw-bold mb-0">${bl.price}$</p>
+                                                                    </c:when>
+                                                                    <c:otherwise>
+                                                                        <span style="color:gray; font-size: 0.9rem; text-decoration: line-through;" class="fs-5 fw-bold mb-0">${bl.price}$</span>
+                                                                        <span style="color: red; font-size: 0.9rem;" class="mb-0">-${Math.round(bl.discount.discountPercent)}%</span>
+                                                                        <p style="font-size: 0.9rem;" class="text-dark fs-5 fw-bold mb-0">${bl.price - bl.price*bl.discount.discountPercent/100}$</p>
+                                                                    </c:otherwise>
+                                                                </c:choose>
+
+                                                                <form action="browse?action=addToCart" method="post" class="addToCartForm">
+                                                                    <input type="text" name="bookQuantity" value="1" hidden>
+                                                                    <input name="currentPage" type="text" value="home" hidden>
+                                                                    <input name="bookID" type="number" value="${bl.bookID}" hidden>
+                                                                    <input name="bookTitle" type="text" value="${bl.title}" hidden>
+                                                                    <a class="btn border border-secondary rounded-pill px-3 text-primary" style="align-content: center;" onclick="document.getElementById('addToCartForm').submit();">
+                                                                        <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
+                                                                    </a>
+                                                                </form>
+                                                                <script>
+                                                                    document.querySelectorAll('.addToCartForm').forEach(function (button) {
+                                                                        button.addEventListener('click', function (event) {
+                                                                            event.preventDefault();
+                                                                            button.closest('form').submit();
+                                                                        });
+                                                                    });
+                                                                </script>
+                                                            </div>
+
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </a>
                                             </div>
                                         </c:forEach>
                                     </div>
@@ -1145,9 +1229,9 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
         <script>
-            $(document).ready(function () {
-                toastr.options.closeButton = true;
-                toastr.options.progressBar = true;
+                                                                    $(document).ready(function () {
+                                                                        toastr.options.closeButton = true;
+                                                                        toastr.options.progressBar = true;
             <%
                    List<String> successMessages = (List<String>) request.getAttribute("successMessages");
                    List<String> infoMessages = (List<String>) request.getAttribute("infoMessages");
@@ -1157,28 +1241,28 @@
 
             <% if (successMessages != null) { %>
             <% for (String message : successMessages) { %>
-                toastr.success('<%= message %>', 'Success', {timeOut: 5000});
+                                                                        toastr.success('<%= message %>', 'Success', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (infoMessages != null) { %>
             <% for (String message : infoMessages) { %>
-                toastr.info('<%= message %>', 'Notification', {timeOut: 5000});
+                                                                        toastr.info('<%= message %>', 'Notification', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (warningMessages != null) { %>
             <% for (String message : warningMessages) { %>
-                toastr.warning('<%= message %>', 'Warning', {timeOut: 5000});
+                                                                        toastr.warning('<%= message %>', 'Warning', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (errorMessages != null) { %>
             <% for (String message : errorMessages) { %>
-                toastr.error('<%= message %>', 'Invalid', {timeOut: 5000});
+                                                                        toastr.error('<%= message %>', 'Invalid', {timeOut: 5000});
             <% } %>
             <% } %>
-            });
+                                                                    });
         </script>
         <!-- JavaScript Libraries -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>

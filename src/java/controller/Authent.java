@@ -5,6 +5,7 @@ import dao.CustomerDAO;
 import EmailSender.CountdownInfo;
 import dao.AdminDAO;
 import dao.BrowseDAO;
+import dao.CartAndOrderDAO;
 import entity.Account;
 import entity.Book;
 import entity.Genre;
@@ -34,6 +35,7 @@ public class Authent extends HttpServlet {
     AdminDAO ad = new AdminDAO();
     EmailSender es = new EmailSender();
     BrowseDAO bd = new BrowseDAO();
+    CartAndOrderDAO caod = new CartAndOrderDAO();
     // Lists to store different types of messages
     List<String> successMessages = new ArrayList<>();
     List<String> infoMessages = new ArrayList<>();
@@ -158,11 +160,16 @@ public class Authent extends HttpServlet {
                 Account me = cd.getPublicAccountInfobyEmail(email);
                 session.setAttribute("accountLoggedIn", me);
                 session.setAttribute("isLoggedIn", true);
-                
-                listBookDefault(request, response, 8);
+                if (me == null) {
+                    request.setAttribute("cartProductCount", 0);
+                } else {
+                    request.setAttribute("cartProductCount", caod.getProductNumbersOfCartByAccountID(me.getAccountID()));
+                }
+
+                listBookDefault(request, 8);
                 List<Genre> genreList = GenreProvider.getGenreList();
                 request.setAttribute("book_genre_list", genreList);
-                
+
                 successMessages.add("Loggin success.");
                 addMessages(request);
                 request.getRequestDispatcher("/views/HomePage.jsp").forward(request, response);
@@ -283,6 +290,14 @@ public class Authent extends HttpServlet {
         }
     }
 
+    /**
+     * Handles the <code>logout</code> process.
+     *
+     * @param request The HttpServletRequest.
+     * @param response The HttpServletResponse.
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
     private void logout(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         if (session != null) {
@@ -361,10 +376,10 @@ public class Authent extends HttpServlet {
     /**
      * Handles the process of setting a new password after OTP verification.
      *
-     * @param request
-     * @param response
-     * @throws ServletException
-     * @throws IOException
+     * @param request The HttpServletRequest.
+     * @param response The HttpServletResponse.
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
      */
     private void getNewPassword(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String email = request.getParameter("hiddenEmail");
@@ -416,8 +431,16 @@ public class Authent extends HttpServlet {
             request.getRequestDispatcher("/views/ForgotPassword.jsp").forward(request, response);
         }
     }
-    
-    private void listBookDefault(HttpServletRequest request, HttpServletResponse response, int size) throws ServletException, IOException {
+
+    /**
+     * Lists books with default pagination and attributes.
+     *
+     * @param request The HttpServletRequest.
+     * @param size The number of items per page.
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    private void listBookDefault(HttpServletRequest request, int size) throws ServletException, IOException {
         int page = Integer.parseInt(request.getParameter("page") == null ? "1" : request.getParameter("page"));
 
         List<Book> bookList = bd.getBookList();

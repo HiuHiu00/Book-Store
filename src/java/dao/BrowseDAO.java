@@ -91,7 +91,7 @@ public class BrowseDAO {
                 bookList.add(book);
             }
         } catch (SQLException e) {
-            System.out.println(e);
+            logger.log(Level.SEVERE, "Error occurred while get all book list", e);
         } finally {
             closeConnection(connection, ps, rs);
         }
@@ -251,7 +251,7 @@ public class BrowseDAO {
                 bookList.add(book);
             }
         } catch (SQLException e) {
-            System.out.println(e);
+            logger.log(Level.SEVERE, "Error occurred while get book list with filter search", e);
         } finally {
             closeConnection(connection, ps, rs);
         }
@@ -281,7 +281,7 @@ public class BrowseDAO {
                 authorList.add(author);
             }
         } catch (SQLException e) {
-            System.out.println(e);
+            logger.log(Level.SEVERE, "Error occurred while get all author list", e);
         } finally {
             closeConnection(connection, ps, rs);
         }
@@ -311,7 +311,7 @@ public class BrowseDAO {
                 publisherList.add(publisher);
             }
         } catch (SQLException e) {
-            System.out.println(e);
+            logger.log(Level.SEVERE, "Error occurred while get all publisher list", e);
         } finally {
             closeConnection(connection, ps, rs);
         }
@@ -358,7 +358,7 @@ public class BrowseDAO {
                 return book;
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error occurred while get account information by email", e);
+            logger.log(Level.SEVERE, "Error occurred while get book detail information by book ID", e);
         } finally {
             closeConnection(connection, ps, rs);
         }
@@ -384,7 +384,7 @@ public class BrowseDAO {
                 genres.add(genre);
             }
         } catch (SQLException e) {
-            System.out.println(e);
+            logger.log(Level.SEVERE, "Error occurred while get book genres by book ID", e);
         } finally {
             closeConnection(connection, ps, rs);
         }

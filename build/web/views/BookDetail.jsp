@@ -83,7 +83,7 @@
                             <!--<button class="btn-search btn border border-secondary btn-md-square rounded-circle bg-white me-4" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="fas fa-search text-primary"></i></button>-->
                             <a href="#" class="position-relative me-4 my-auto">
                                 <i class="fa fa-shopping-bag fa-2x"></i>
-                                <span class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style="top: -5px; left: 15px; height: 20px; min-width: 20px;">0</span>
+                                <span class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style="top: -5px; left: 15px; height: 20px; min-width: 20px;">${requestScope.cartProductCount}</span>
                             </a>
                             <div class="nav-item dropdown">
                                 <a href="#" class="my-auto nav-link"> <i class="fas fa-user fa-2x"></i> </a>
@@ -182,8 +182,8 @@
                                                         id="nav-description-tab" data-bs-toggle="tab" data-bs-target="#nav-description"
                                                         aria-controls="nav-description" aria-selected="true">Description</button>
                                                 <button class="nav-link border-white border-bottom-0" type="button" role="tab"
-                                                        id="nav-AaP-tab" data-bs-toggle="tab" data-bs-target="#nav-AaP"
-                                                        aria-controls="nav-AaP" aria-selected="false">Author and Publisher</button>
+                                                        id="nav-detail-tab" data-bs-toggle="tab" data-bs-target="#nav-detail"
+                                                        aria-controls="nav-detail" aria-selected="false">Detail</button>
                                                 <button class="nav-link border-white border-bottom-0" type="button" role="tab"
                                                         id="nav-genre-tab" data-bs-toggle="tab" data-bs-target="#nav-genre"
                                                         aria-controls="nav-genre" aria-selected="false">Genres</button>
@@ -193,7 +193,8 @@
                                             <div class="tab-pane active" id="nav-description" role="tabpanel" aria-labelledby="nav-description-tab">
                                                 <p>${requestScope.bookDetail.description}</p>
                                             </div>
-                                            <div class="tab-pane" id="nav-AaP" role="tabpanel" aria-labelledby="nav-AaP-tab">
+                                            <div class="tab-pane" id="nav-detail" role="tabpanel" aria-labelledby="nav-detail-tab">
+                                                ISBN-13: ${requestScope.bookDetail.ISBN13}<br/>
                                                 Author: ${requestScope.bookDetail.author.authorName}<br/>
                                                 Publisher: ${requestScope.bookDetail.publisher.publisherName}
                                             </div>
@@ -238,20 +239,24 @@
                                             </c:otherwise>
                                         </c:choose>
                                         <form action="browse?action=addToCart" method="post">
-                                            <div class="input-group quantity mb-5" style="width: 100%;" >
+                                            <div class="input-group quantityBook mb-5" style="width: 100%;" >
                                                 <div class="input-group-btn">
                                                     <button type="button" class="btn btn-sm btn-minus rounded-circle bg-light border" >
                                                         <i class="fa fa-minus"></i>
                                                     </button>
                                                 </div>
-                                                <input type="number" name="bookQuantity"class="form-control form-control-sm text-center border-0" value="1" max="${requestScope.bookDetail.stock}" disabled>
+                                                <input type="number" name="bookQuantityDisplay" class="form-control form-control-sm text-center border-0" value="1" max="${requestScope.bookDetail.stock}" disabled>
+                                                <input type="hidden" name="bookQuantity" value="1">
                                                 <div class="input-group-btn">
                                                     <button type="button" class="btn btn-sm btn-plus rounded-circle bg-light border">
                                                         <i class="fa fa-plus"></i>
                                                     </button>
                                                 </div>
                                             </div>
-                                            <input name="bookId" type="number" value="${requestScope.bookDetail.bookID}" hidden disabled>
+
+                                            <input name="currentPage" type="text" value="bookDetail" hidden>
+                                            <input name="bookID" type="number" value="${requestScope.bookDetail.bookID}" hidden>
+                                            <input name="bookName" type="text" value="${requestScope.bookDetail.title}" hidden>
                                             <button type="submit" class="btn border border-secondary rounded-pill px-4 py-2 mb-4 text-primary" style="width: 100%;">
                                                 <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
                                             </button>
@@ -484,12 +489,42 @@
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-       
         <script>
-            
-                                                $(document).ready(function () {
-                                                    toastr.options.closeButton = true;
-                                                    toastr.options.progressBar = true;
+
+            (function ($) {
+                "use strict";
+                $('.quantityBook button').on('click', function () {
+                    var button = $(this);
+                    var input = button.parent().parent().find('input[name="bookQuantityDisplay"]');
+                    var hiddenInput = button.parent().parent().find('input[name="bookQuantity"]');
+                    var oldValue = parseFloat(input.val());
+                    var max = parseFloat(input.attr('max'));
+                    var newVal;
+
+                    if (button.hasClass('btn-plus')) {
+                        if (oldValue < max) {
+                            newVal = oldValue + 1;
+                        } else {
+                            newVal = max;
+                        }
+                    } else {
+                        if (oldValue > 1) {
+                            newVal = oldValue - 1;
+                        } else {
+                            newVal = 1;
+                        }
+                    }
+
+                    input.val(newVal);
+                    hiddenInput.val(newVal);
+                });
+            })(jQuery);
+        </script>
+        <script>
+
+            $(document).ready(function () {
+                toastr.options.closeButton = true;
+                toastr.options.progressBar = true;
             <%
                    List<String> successMessages = (List<String>) request.getAttribute("successMessages");
                    List<String> infoMessages = (List<String>) request.getAttribute("infoMessages");
@@ -499,28 +534,28 @@
 
             <% if (successMessages != null) { %>
             <% for (String message : successMessages) { %>
-                                                    toastr.success('<%= message %>', 'Success', {timeOut: 5000});
+                toastr.success('<%= message %>', 'Success', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (infoMessages != null) { %>
             <% for (String message : infoMessages) { %>
-                                                    toastr.info('<%= message %>', 'Notification', {timeOut: 5000});
+                toastr.info('<%= message %>', 'Notification', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (warningMessages != null) { %>
             <% for (String message : warningMessages) { %>
-                                                    toastr.warning('<%= message %>', 'Warning', {timeOut: 5000});
+                toastr.warning('<%= message %>', 'Warning', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (errorMessages != null) { %>
             <% for (String message : errorMessages) { %>
-                                                    toastr.error('<%= message %>', 'Invalid', {timeOut: 5000});
+                toastr.error('<%= message %>', 'Invalid', {timeOut: 5000});
             <% } %>
             <% } %>
-                                                });
+            });
         </script>
         <!-- JavaScript Libraries -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>

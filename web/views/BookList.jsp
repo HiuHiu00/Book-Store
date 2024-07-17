@@ -104,7 +104,7 @@
                             <!--<button class="btn-search btn border border-secondary btn-md-square rounded-circle bg-white me-4" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="fas fa-search text-primary"></i></button>-->
                             <a href="#" class="position-relative me-4 my-auto">
                                 <i class="fa fa-shopping-bag fa-2x"></i>
-                                <span class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style="top: -5px; left: 15px; height: 20px; min-width: 20px;">0</span>
+                                <span class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style="top: -5px; left: 15px; height: 20px; min-width: 20px;">${requestScope.cartProductCount}</span>
                             </a>
                             <div class="nav-item dropdown">
                                 <a href="#" class="my-auto nav-link"> <i class="fas fa-user fa-2x"></i> </a>
@@ -362,7 +362,24 @@
                                                                             <p style="font-size: 0.9rem;" class="text-dark fs-5 fw-bold mb-0">${bl.price - bl.price*bl.discount.discountPercent/100}$</p>
                                                                         </c:otherwise>
                                                                     </c:choose>
-                                                                            <a href="#1" class="btn border border-secondary rounded-pill px-3 text-primary" style="align-content: center;"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+
+                                                                    <form action="browse?action=addToCart" method="post" class="addToCartForm">
+                                                                        <input type="text" name="bookQuantity" value="1" hidden>
+                                                                        <input name="currentPage" type="text" value="bookList" hidden>
+                                                                        <input name="bookID" type="number" value="${bl.bookID}" hidden>
+                                                                        <input name="bookName" type="text" value="${bl.title}" hidden>
+                                                                        <a class="btn border border-secondary rounded-pill px-3 text-primary" style="align-content: center;" onclick="document.getElementById('addToCartForm').submit();">
+                                                                            <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
+                                                                        </a>
+                                                                    </form>
+                                                                    <script>
+                                                                        document.querySelectorAll('.addToCartForm').forEach(function (button) {
+                                                                            button.addEventListener('click', function (event) {
+                                                                                event.preventDefault();
+                                                                                button.closest('form').submit();
+                                                                            });
+                                                                        });
+                                                                    </script>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -479,9 +496,9 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
         <script>
-                                        $(document).ready(function () {
-                                            toastr.options.closeButton = true;
-                                            toastr.options.progressBar = true;
+                                                                        $(document).ready(function () {
+                                                                            toastr.options.closeButton = true;
+                                                                            toastr.options.progressBar = true;
             <%
                    List<String> successMessages = (List<String>) request.getAttribute("successMessages");
                    List<String> infoMessages = (List<String>) request.getAttribute("infoMessages");
@@ -491,28 +508,28 @@
 
             <% if (successMessages != null) { %>
             <% for (String message : successMessages) { %>
-                                            toastr.success('<%= message %>', 'Success', {timeOut: 5000});
+                                                                            toastr.success('<%= message %>', 'Success', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (infoMessages != null) { %>
             <% for (String message : infoMessages) { %>
-                                            toastr.info('<%= message %>', 'Notification', {timeOut: 5000});
+                                                                            toastr.info('<%= message %>', 'Notification', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (warningMessages != null) { %>
             <% for (String message : warningMessages) { %>
-                                            toastr.warning('<%= message %>', 'Warning', {timeOut: 5000});
+                                                                            toastr.warning('<%= message %>', 'Warning', {timeOut: 5000});
             <% } %>
             <% } %>
 
             <% if (errorMessages != null) { %>
             <% for (String message : errorMessages) { %>
-                                            toastr.error('<%= message %>', 'Invalid', {timeOut: 5000});
+                                                                            toastr.error('<%= message %>', 'Invalid', {timeOut: 5000});
             <% } %>
             <% } %>
-                                        });
+                                                                        });
         </script>
         <!-- JavaScript Libraries -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>

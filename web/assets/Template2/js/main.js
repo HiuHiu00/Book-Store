@@ -132,27 +132,27 @@
 
 
     // Product Quantity
-    $('.quantity button').on('click', function () {
-        var button = $(this);
-        var input = button.parent().parent().find('input');
-        var oldValue = parseFloat(input.val());
-        var max = parseFloat(input.attr('max'));
-
-        if (button.hasClass('btn-plus')) {
-            if (oldValue < max) {
-                var newVal = oldValue + 1;
-            } else {
-                var newVal = max;
-            }
-        } else {
-            if (oldValue > 0) {
-                var newVal = oldValue - 1;
-            } else {
-                var newVal = 0;
-            }
-        }
-        input.val(newVal);
-    });
+//    $('.quantity button').on('click', function () {
+//        var button = $(this);
+//        var input = button.parent().parent().find('input');
+//        var oldValue = parseFloat(input.val());
+//        var max = parseFloat(input.attr('max'));
+//
+//        if (button.hasClass('btn-plus')) {
+//            if (oldValue < max) {
+//                var newVal = oldValue + 1;
+//            } else {
+//                var newVal = max;
+//            }
+//        } else {
+//            if (oldValue > 0) {
+//                var newVal = oldValue - 1;
+//            } else {
+//                var newVal = 0;
+//            }
+//        }
+//        input.val(newVal);
+//    });
 
 
 })(jQuery);

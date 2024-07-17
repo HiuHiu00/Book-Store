@@ -214,7 +214,7 @@ public class CustomerDAO {
             ps.setString(2, email);
             ps.executeUpdate();
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error occurred while add new password by email", e);
+            logger.log(Level.SEVERE, "Error occurred while add new password for account by email", e);
         } finally {
             closeConnection(connection, ps, rs);
         }
