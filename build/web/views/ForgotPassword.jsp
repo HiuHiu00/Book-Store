@@ -8,20 +8,20 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!--===============================================================================================-->    
-        <link rel="icon" type="image/png" href="assets/images/icons/favicon.ico"/>
+        <link rel="icon" type="image/png" href="assets/Template1/images/icons/favicon.ico"/>
         <!--===============================================================================================-->
-        <link rel="stylesheet" type="text/css" href="assets/vendor/bootstrap/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="assets/Template1/vendor/bootstrap/css/bootstrap.min.css">
         <!--===============================================================================================-->
-        <link rel="stylesheet" type="text/css" href="assets/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"/>
         <!--===============================================================================================-->
-        <link rel="stylesheet" type="text/css" href="assets/vendor/animate/animate.css">
+        <link rel="stylesheet" type="text/css" href="assets/Template1/vendor/animate/animate.css">
         <!--===============================================================================================-->    
-        <link rel="stylesheet" type="text/css" href="assets/vendor/css-hamburgers/hamburgers.min.css">
+        <link rel="stylesheet" type="text/css" href="assets/Template1/vendor/css-hamburgers/hamburgers.min.css">
         <!--===============================================================================================-->
-        <link rel="stylesheet" type="text/css" href="assets/vendor/select2/select2.min.css">
+        <link rel="stylesheet" type="text/css" href="assets/Template1/vendor/select2/select2.min.css">
         <!--===============================================================================================-->
-        <link rel="stylesheet" type="text/css" href="assets/css/util.css">
-        <link rel="stylesheet" type="text/css" href="assets/css/main.css">
+        <link rel="stylesheet" type="text/css" href="assets/Template1/css/util.css">
+        <link rel="stylesheet" type="text/css" href="assets/Template1/css/main.css">
 
         <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
         <style>
@@ -36,7 +36,7 @@
             <div class="container-login100">
                 <div style="padding-top: 33px;" class="wrap-login100">
                     <div class="login100-pic js-tilt" data-tilt>
-                        <img src="assets/images/img2.png" alt="IMG">
+                        <img src="assets/Template1/images/img2.png" alt="IMG">
                     </div>
 
                     <div class="login100-form validate-form">
@@ -47,10 +47,10 @@
                             <div class="wrap-input100 validate-input" data-validate="Valid email is required: ex@abc.xyz">
                                 <c:choose>
                                     <c:when test="${not empty requestScope.email}">
-                                        <input class="input100" type="text" name="email" placeholder="Email" value="${requestScope.email}">
+                                        <input id="email" class="input100" type="text" name="email" placeholder="Email" value="${requestScope.email}">
                                     </c:when>
                                     <c:otherwise>
-                                        <input class="input100" type="text" name="email" placeholder="Email">
+                                        <input id="email" class="input100" type="text" name="email" placeholder="Email">
                                     </c:otherwise>
                                 </c:choose>
                                 <span class="focus-input100"></span>
@@ -83,24 +83,29 @@
                                     <input class="input100" type="text" name="otpCode" placeholder="Enter OTP Code" maxlength="6">
                                     <span class="focus-input100"></span>
                                     <span class="symbol-input100">
-                                        <i class="fa fa-envelope" aria-hidden="true"></i>
+                                        <i class="fa fa-unlock" aria-hidden="true"></i>
                                     </span>
                                 </div>
                                 <div class="container-login100-form-btn" style="padding-top: 0;" id="verifyBtn">
                                     <button class="login100-form-btn" type="submit">
                                         <span>Verify</span>
-                                        <span><i class="fa fa-envelope" style="margin-left: 5px;"></i></span>
+                                        <span><i class="fa fa-check" style="margin-left: 5px;"></i></span>
                                     </button>
                                 </div>
-                                <input name="hiddenEmail" type="text" value="${requestScope.email}">
+                                <input id="hiddenEmail" name="hiddenEmail" type="text" value="" hidden>
                             </form>
                         </c:if>
 
                         <div class=" login100-form text-center p-t-6">
                             Back to login page
                             <a class="txt2" href="authent?action=login">
-                                <i class="fa fa-long-arrow-right m-l-5" aria-hidden="true"></i>
+                                <i class="fas fa-long-arrow-alt-right m-l-5" aria-hidden="true"></i>
                                 Back
+                            </a>
+                        </div>
+                        <div class="text-center p-t-12">
+                            <a class="txt2" href="browse?action=home">
+                                <i class="fas fa-long-arrow-alt-left m-r-5"></i> Go to Home Page
                             </a>
                         </div>
                     </div>
@@ -131,10 +136,16 @@
             }
 
             window.onload = function () {
-                 let countdownDuration = ${countdownDuration};
+                let countdownDuration = ${countdownDuration};
                 let display = document.querySelector('#countdown');
                 startCountdown(countdownDuration, display);
             };
+
+            document.getElementById('email').addEventListener('input', syncHiddenEmail);
+            window.onload = syncHiddenEmail;
+            function syncHiddenEmail() {
+                document.getElementById('hiddenEmail').value = document.getElementById('email').value;
+            }
 
             $(document).ready(function () {
                 toastr.options.closeButton = true;
@@ -173,20 +184,20 @@
         </script>
 
         <!--===============================================================================================-->    
-        <script src="assets/vendor/jquery/jquery-3.2.1.min.js"></script>
+        <script src="assets/Template1/vendor/jquery/jquery-3.2.1.min.js"></script>
         <!--===============================================================================================-->
-        <script src="assets/vendor/bootstrap/js/popper.js"></script>
-        <script src="assets/vendor/bootstrap/js/bootstrap.min.js"></script>
+        <script src="assets/Template1/vendor/bootstrap/js/popper.js"></script>
+        <script src="assets/Template1/vendor/bootstrap/js/bootstrap.min.js"></script>
         <!--===============================================================================================-->
-        <script src="assets/vendor/select2/select2.min.js"></script>
+        <script src="assets/Template1/vendor/select2/select2.min.js"></script>
         <!--===============================================================================================-->
-        <script src="assets/vendor/tilt/tilt.jquery.min.js"></script>
+        <script src="assets/Template1/vendor/tilt/tilt.jquery.min.js"></script>
         <script>
             $('.js-tilt').tilt({
                 scale: 1.1
             })
         </script>
         <!--===============================================================================================-->
-        <script src="assets/js/main2.js"></script>
+        <script src="assets/Template1/js/main2.js"></script>
     </body>
 </html>

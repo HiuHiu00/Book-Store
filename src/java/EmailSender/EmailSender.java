@@ -26,9 +26,20 @@ import jakarta.servlet.ServletContext;
 
 public class EmailSender {
 
+    //
     private final String FROM_EMAIL = "clothingshoponlineg1se1754@gmail.com";
     private final String EMAIL_PASSWORD = "pizwgjrviipmttyx";
 
+    /**
+     * Sends an email message using SMTP with Gmail as the mail server.
+     *
+     * @param context The ServletContext for retrieving file paths.
+     * @param toEmail The recipient's email address.
+     * @param subject The subject of the email.
+     * @param type The type of email to send ({@code ocType} for OTP code,
+     * {@code npType} for new password).
+     * @param codeIsSent The code or password to include in the email.
+     */
     public void sendMsgEmail(ServletContext context, String toEmail, String subject, String type, String codeIsSent) {
         Properties props = System.getProperties();
         props.put("mail.smtp.host", "smtp.gmail.com");
@@ -60,15 +71,20 @@ public class EmailSender {
     }
 
     public static void main(String[] args) {
-        EmailSender es = new EmailSender();
-//        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-//        scheduler.schedule(() -> {
-//                es.sendMsgEmail("hieulove0408@gmail.com", "Test");
-//        }, 3, TimeUnit.SECONDS);
-        //es.sendMsgEmail("hieulove0408@gmail.com", "Test");
 
     }
 
+    /**
+     * Retrieves the HTML content for the email based on the type and replaces
+     * placeholders with appropriate values.
+     *
+     * @param context The ServletContext to locate the HTML template file.
+     * @param toEmail The recipient's email address.
+     * @param type The type of email to send ({@code ocType} for OTP code,
+     * {@code npType} for new password).
+     * @param codeIsSent The code or password to include in the email.
+     * @return The formatted HTML content as a String.
+     */
     public String getEmailSenderFormat(ServletContext context, String toEmail, String type, String codeIsSent) {
         String filePath = context.getRealPath("views/EmailSenderForm.html");
 
@@ -92,6 +108,14 @@ public class EmailSender {
         return updatedContent;
     }
 
+    /**
+     * Replaces placeholders in the OTP code email template with actual values.
+     *
+     * @param content The HTML content template of the email.
+     * @param toEmail The recipient's email address.
+     * @param otpCode The OTP code to be included in the email.
+     * @return The updated HTML content with placeholders replaced.
+     */
     public String replaceAttributeForOTPCode(String content, String toEmail, String otpCode) {
         String updatedContent = content.replace("XXXXXX", otpCode);
 
@@ -111,6 +135,15 @@ public class EmailSender {
         return updatedContent;
     }
 
+    /**
+     * Replaces placeholders in the new password email template with actual
+     * values.
+     *
+     * @param content The HTML content template of the email.
+     * @param toEmail The recipient's email address.
+     * @param nPassword The new password to be included in the email.
+     * @return The updated HTML content with placeholders replaced.
+     */
     public String replaceAttributeForNewPassword(String content, String toEmail, String nPassword) {
         String updatedContent = content.replace("XXXXXX", nPassword);
 
@@ -124,7 +157,7 @@ public class EmailSender {
 
         updatedContent = updatedContent.replace("recipient's_email", toEmail);
         updatedContent = updatedContent.replace("getFormTitle", "Your New Password");
-        updatedContent = updatedContent.replace("geNotification", " Thank you for choosing MyBookStore. If you did not request this, please ignore this message. This Password is valid for a single use and should not be shared with anyone.");
+        updatedContent = updatedContent.replace("getNotification", " Thank you for choosing MyBookStore. If you did not request this, please ignore this message. This Password is valid for a single use and should not be shared with anyone.");
         return updatedContent;
     }
 }

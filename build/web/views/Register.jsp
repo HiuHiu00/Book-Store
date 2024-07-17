@@ -8,20 +8,20 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <!--===============================================================================================-->	
-        <link rel="icon" type="image/png" href="assets/images/icons/favicon.ico"/>
+        <link rel="icon" type="image/png" href="assets/Template1/images/icons/favicon.ico"/>
         <!--===============================================================================================-->
-        <link rel="stylesheet" type="text/css" href="assets/vendor/bootstrap/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="assets/Template1/vendor/bootstrap/css/bootstrap.min.css">
         <!--===============================================================================================-->
-        <link rel="stylesheet" type="text/css" href="assets/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"/>
         <!--===============================================================================================-->
-        <link rel="stylesheet" type="text/css" href="assets/vendor/animate/animate.css">
+        <link rel="stylesheet" type="text/css" href="assets/Template1/vendor/animate/animate.css">
         <!--===============================================================================================-->	
-        <link rel="stylesheet" type="text/css" href="assets/vendor/css-hamburgers/hamburgers.min.css">
+        <link rel="stylesheet" type="text/css" href="assets/Template1/vendor/css-hamburgers/hamburgers.min.css">
         <!--===============================================================================================-->
-        <link rel="stylesheet" type="text/css" href="assets/vendor/select2/select2.min.css">
+        <link rel="stylesheet" type="text/css" href="assets/Template1/vendor/select2/select2.min.css">
         <!--===============================================================================================-->
-        <link rel="stylesheet" type="text/css" href="assets/css/util.css">
-        <link rel="stylesheet" type="text/css" href="assets/css/main.css">
+        <link rel="stylesheet" type="text/css" href="assets/Template1/css/util.css">
+        <link rel="stylesheet" type="text/css" href="assets/Template1/css/main.css">
 
         <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
     </head>
@@ -30,7 +30,7 @@
             <div class="container-login100">
                 <div style="padding-top: 33px;" class="wrap-login100">
                     <div class="login100-pic js-tilt" data-tilt>
-                        <img src="assets/images/img2.png" alt="IMG">
+                        <img src="assets/Template1/images/img2.png" alt="IMG">
                     </div>
 
                     <form class="login100-form validate-form" action="authent?action=register" method="post">
@@ -81,7 +81,7 @@
 
                             <button class="login100-form-btn" type="submit">
                                 <span>Register</span>
-                                <span><i class="fa fa-check-square-o" style="margin-left: 5px;"> </i></span>
+                                <span><i class="fas fa-user-plus" style="margin-left: 5px;"> </i></span>
                             </button>
                         </div>
 
@@ -89,8 +89,13 @@
                         <div class="text-center p-t-6">
                             Already have account?
                             <a class="txt2" href="authent?action=login">
-                                <i class="fa fa-long-arrow-right m-l-5" aria-hidden="true"></i>
+                                <i class="fas fa-long-arrow-alt-right m-l-5" aria-hidden="true"></i>
                                 Login
+                            </a>
+                        </div>
+                        <div class="text-center p-t-12">
+                            <a class="txt2" href="browse?action=home">
+                                <i class="fas fa-long-arrow-alt-left m-r-5"></i> Go to Home Page
                             </a>
                         </div>
                     </form>
@@ -138,14 +143,14 @@
         </script>
 
         <!--===============================================================================================-->	
-        <script src="assets/vendor/jquery/jquery-3.2.1.min.js"></script>
+        <script src="assets/Template1/vendor/jquery/jquery-3.2.1.min.js"></script>
         <!--===============================================================================================-->
-        <script src="assets/vendor/bootstrap/js/popper.js"></script>
-        <script src="assets/vendor/bootstrap/js/bootstrap.min.js"></script>
+        <script src="assets/Template1/vendor/bootstrap/js/popper.js"></script>
+        <script src="assets/Template1/vendor/bootstrap/js/bootstrap.min.js"></script>
         <!--===============================================================================================-->
-        <script src="assets/vendor/select2/select2.min.js"></script>
+        <script src="assets/Template1/vendor/select2/select2.min.js"></script>
         <!--===============================================================================================-->
-        <script src="assets/vendor/tilt/tilt.jquery.min.js"></script>
+        <script src="assets/Template1/vendor/tilt/tilt.jquery.min.js"></script>
         <script>
 
             $('.js-tilt').tilt({
@@ -153,6 +158,6 @@
             })
         </script>
         <!--===============================================================================================-->
-        <script src="assets/js/main2.js"></script>
+        <script src="assets/Template1/js/main2.js"></script>
     </body>
 </html>

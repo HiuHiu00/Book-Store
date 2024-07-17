@@ -11,4 +11,6 @@ public class Genre {
     private int GenreID;
     private String Genre;
     private int BookID;
+    
+    private String genreImageUrl;
 }
