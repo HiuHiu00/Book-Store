@@ -67,7 +67,7 @@ public class Browse extends HttpServlet {
             throws ServletException, IOException {
         String url = "";
         String action = request.getParameter("action") == null ? "home" : request.getParameter("action");
-        if (!"productList".equals(action)) {
+        if (!"bookList".equals(action)) {
             HttpSession session = request.getSession();
             session.removeAttribute("genreSelected");
             session.removeAttribute("currentPriceRangeLevelSelected");
@@ -82,14 +82,18 @@ public class Browse extends HttpServlet {
                 request.setAttribute("book_genre_list", genreList);
                 yield "views/HomePage.jsp";
             }
-            case "productList" -> {
+            case "bookList" -> {
                 listBookWithFilter(request, 6);
                 List<String> genreNames = GenreProvider.getGenreList().stream()
                         .map(Genre::getGenre)
                         .map(genre -> "'" + genre + "'")
                         .collect(Collectors.toList());
                 request.setAttribute("book_genre_name_list", genreNames);
-                yield "views/ProductList.jsp";
+                yield "views/BookList.jsp";
+            }
+            case "bookDetail" -> {
+                bookDetail(request, Integer.parseInt(request.getParameter("bookID")));
+                yield "views/BookDetail.jsp";
             }
             default ->
                 "index.html";
@@ -110,7 +114,7 @@ public class Browse extends HttpServlet {
             throws ServletException, IOException {
         String action = request.getParameter("action") == null ? "home" : request.getParameter("action");
         switch (action) {
-            case "productList" -> {
+            case "bookList" -> {
 
             }
             default ->
@@ -166,25 +170,26 @@ public class Browse extends HttpServlet {
     private void listBookWithFilter(HttpServletRequest request, int size) throws ServletException, IOException {
         clearMessages();
         HttpSession session = request.getSession();
-
+        //FilterSearchByGenre
         String addGenre = request.getParameter("addGenre");
         String removeGenre = request.getParameter("removeGenre");
         List<String> genreSelected = getGenresSelected(session, addGenre, removeGenre);
-
+        //FilterSearchByPriceRange
         String selectedPriceRangeLevel = request.getParameter("selectedPriceRangeLevel");
         Map<String, Double> priceRange = getPriceRangeSelected(request, session, selectedPriceRangeLevel);
         Double minPrice = priceRange.get("minPrice");
         Double maxPrice = priceRange.get("maxPrice");
-
+        //FilterSearchByAuthorName
         String selectedAuthorValue = request.getParameter("selectedAuthor");
         String authorName = getAuthorNameSelected(request, session, selectedAuthorValue);
-
+        //FilterSearchByPublisherName
         String selectedPublisherValue = request.getParameter("selectedPublisher");
         String publisherName = getPublisherNameSelected(request, session, selectedPublisherValue);
-
+        //FilterSearchBySortingOption
         String sortingOptionValue = request.getParameter("sortingOption");
         String sortingOption = getSortOption(request, session, sortingOptionValue);
         int page = Integer.parseInt(request.getParameter("page") == null ? "1" : request.getParameter("page"));
+
         List<Book> FilterSearchBookList = bd.getBookListWithFilterSearch(page, size, genreSelected, minPrice, maxPrice, authorName, publisherName, sortingOption);
 
         if (null == FilterSearchBookList || FilterSearchBookList.isEmpty()) {
@@ -391,5 +396,13 @@ public class Browse extends HttpServlet {
         request.setAttribute("currentSortOptionSelected", sortingOptionValue);
 
         return sortingOptionValue;
+    }
+
+    private void bookDetail(HttpServletRequest request, int bookId) throws ServletException, IOException {
+        Book bookDetail = bd.getBookDetailByID(bookId);
+        request.setAttribute("bookDetail", bookDetail);
+
+        List<Genre> genres = bd.getBookGenresByID(bookId);
+        request.setAttribute("genres", genres);
     }
 }

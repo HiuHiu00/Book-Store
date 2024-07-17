@@ -3,6 +3,7 @@ package dao;
 import dal.DBContext;
 import entity.Author;
 import entity.Book;
+import entity.Discount;
 import entity.Genre;
 import entity.Publisher;
 import java.sql.Connection;
@@ -56,12 +57,17 @@ public class BrowseDAO {
         try {
             connection = DBContext.getConnection();
             String query = """
-                           SELECT  b.*, a.AuthorName, p.PublisherName, p.PublisherImagePath
+                           SELECT  b.*, a.AuthorName, p.PublisherName, p.PublisherImagePath, d.DiscountPercent
                            FROM Book b JOIN Author a ON b.AuthorID=a.AuthorID
-                           JOIN Publisher p ON p.PublisherID = b.PublisherID""";
+                           JOIN Publisher p ON p.PublisherID = b.PublisherID
+                           LEFT JOIN Discount d ON d.DiscountID = b.DiscountID
+                           """;
             ps = connection.prepareStatement(query);
             rs = ps.executeQuery();
             while (rs.next()) {
+                Discount discount = Discount.builder()
+                        .DiscountPercent(rs.getDouble("DiscountPercent"))
+                        .build();
                 Author author = Author.builder()
                         .AuthorName(rs.getString("AuthorName"))
                         .build();
@@ -80,6 +86,7 @@ public class BrowseDAO {
                         .Cover_imagePath(rs.getString("Cover_imagePath"))
                         .author(author)
                         .publisher(publisher)
+                        .discount(discount)
                         .build();
                 bookList.add(book);
             }
@@ -113,11 +120,12 @@ public class BrowseDAO {
 
             StringBuilder queryBuilder = new StringBuilder();
             queryBuilder.append("""
-            SELECT b.*, a.AuthorName, p.PublisherName, p.PublisherImagePath
+            SELECT b.*, a.AuthorName, p.PublisherName, p.PublisherImagePath, d.DiscountPercent
             FROM Book b
             JOIN Author a ON b.AuthorID = a.AuthorID
             JOIN Publisher p ON p.PublisherID = b.PublisherID
             JOIN Genre g ON g.BookID = b.BookID
+             LEFT JOIN Discount d ON d.DiscountID = b.DiscountID
             WHERE 1=1
         """);
 
@@ -142,7 +150,7 @@ public class BrowseDAO {
             }
 
             queryBuilder.append("""
-            GROUP BY b.BookID, b.Title, b.ISBN13, b.Publication_date, b.PublisherID, b.Stock, b.Price, b.[Description], b.DiscountID, b.AuthorID, b.Cover_imagePath, a.AuthorName, p.PublisherName, p.PublisherImagePath
+            GROUP BY b.BookID, b.Title, b.ISBN13, b.Publication_date, b.PublisherID, b.Stock, b.Price, b.[Description], b.DiscountID, b.AuthorID, b.Cover_imagePath, a.AuthorName, p.PublisherName, p.PublisherImagePath, d.DiscountPercent
              """);
             if (genreList != null && !genreList.isEmpty()) {
                 queryBuilder.append("HAVING COUNT(DISTINCT g.Genre) = ? ");
@@ -217,6 +225,9 @@ public class BrowseDAO {
             rs = ps.executeQuery();
 
             while (rs.next()) {
+                Discount discount = Discount.builder()
+                        .DiscountPercent(rs.getDouble("DiscountPercent"))
+                        .build();
                 Author author = Author.builder()
                         .AuthorName(rs.getString("AuthorName"))
                         .build();
@@ -235,6 +246,7 @@ public class BrowseDAO {
                         .Cover_imagePath(rs.getString("Cover_imagePath"))
                         .author(author)
                         .publisher(publisher)
+                        .discount(discount)
                         .build();
                 bookList.add(book);
             }
@@ -305,17 +317,86 @@ public class BrowseDAO {
         }
         return publisherList;
     }
+
+    public Book getBookDetailByID(int bookID) {
+        try {
+            connection = DBContext.getConnection();
+            String query = """
+                                      SELECT b.*, a.AuthorName , p.PublisherName, d.DiscountPercent
+                                      FROM Book b
+                                      JOIN Author a ON b.AuthorID = a.AuthorID
+                                      JOIN Publisher p ON p.PublisherID = b.PublisherID
+                                      LEFT JOIN Discount d ON d.DiscountID = b.DiscountID
+                                      WHERE b.BookID = ?
+                                      """;
+            ps = connection.prepareStatement(query);
+            ps.setInt(1, bookID);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                Discount discount = Discount.builder()
+                        .DiscountPercent(rs.getDouble("DiscountPercent"))
+                        .build();
+                Author author = Author.builder()
+                        .AuthorName(rs.getString("AuthorName"))
+                        .build();
+                Publisher publisher = Publisher.builder()
+                        .PublisherName(rs.getString("PublisherName"))
+                        .build();
+                Book book = Book.builder()
+                        .BookID(rs.getInt("BookID"))
+                        .Title(rs.getString("Title"))
+                        .ISBN13(rs.getString("ISBN13"))
+                        .Publication_date(rs.getDate("Publication_date"))
+                        .Stock(rs.getInt("Stock"))
+                        .Price(rs.getDouble("Price"))
+                        .Description(rs.getString("Description"))
+                        .Cover_imagePath(rs.getString("Cover_imagePath"))
+                        .author(author)
+                        .publisher(publisher)
+                        .discount(discount)
+                        .build();
+                return book;
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error occurred while get account information by email", e);
+        } finally {
+            closeConnection(connection, ps, rs);
+        }
+        return null;
+    }
+    
+    public List<Genre> getBookGenresByID(int bookID){
+        List<Genre> genres = new ArrayList<>();
+        try {
+            connection = DBContext.getConnection();
+            String query = """
+                           SELECT *
+                           FROM Genre
+                           WHERE BookID = ?
+                           """;
+            ps = connection.prepareStatement(query);
+                        ps.setInt(1, bookID);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Genre genre = Genre.builder()
+                        .Genre(rs.getString("Genre"))
+                        .build();
+                genres.add(genre);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        } finally {
+            closeConnection(connection, ps, rs);
+        }
+        return genres;
+    }
 }
 
 class Test {
 
     public static void main(String[] args) {
         BrowseDAO bd = new BrowseDAO();
-        System.out.println(bd.getAuthorList().size());
-
-        List<Publisher> publisherList = bd.getPublisherList();
-        for (Publisher pub : publisherList) {
-            System.out.println(pub.getPublisherName());
-        }
+        Book b = bd.getBookDetailByID(402);
+        System.out.println(b.getAuthor().getAuthorName());
     }
 }

@@ -61,14 +61,14 @@
             </div>
             <div class="container px-0">
                 <nav class="navbar navbar-light bg-white navbar-expand-xl">
-                    <a href="browse?action=home" class="navbar-brand"><h1 class="text-primary display-6">My Book Store</h1></a>
+                    <a href="browse?action=bookDetail" class="navbar-brand"><h1 class="text-primary display-6">My Book Store</h1></a>
                     <button class="navbar-toggler py-2 px-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
                         <span class="fa fa-bars text-primary"></span>
                     </button>
                     <div class="collapse navbar-collapse bg-white" id="navbarCollapse">
                         <div class="navbar-nav mx-auto">
                             <a href="browse?action=home" class="nav-item nav-link active">Home</a>
-                            <a href="browse?action=productList" class="nav-item nav-link active">Book List</a>
+                            <a href="browse?action=bookList" class="nav-item nav-link active">Book List</a>
                             <!--                            <div class="nav-item dropdown">
                                                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
                                                             <div class="dropdown-menu m-0 bg-secondary rounded-0">
