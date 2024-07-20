@@ -5,6 +5,7 @@ import dao.CartAndOrderDAO;
 import entity.Account;
 import entity.Author;
 import entity.Book;
+import entity.Cart;
 import entity.Genre;
 import entity.GenreProvider;
 import entity.Publisher;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
 
 @WebServlet(name = "Browse", urlPatterns = {"/browse"})
 public class Browse extends HttpServlet {
-    
+
     BrowseDAO bd = new BrowseDAO();
     CartAndOrderDAO caod = new CartAndOrderDAO();
     // Lists to store different types of messages
@@ -74,8 +75,10 @@ public class Browse extends HttpServlet {
         if (me != null) {
             request.setAttribute("cartProductCount", caod.getProductNumbersOfCartByAccountID(me.getAccountID()));
             successMessages.add(String.valueOf(me.getAccountID()));
+            List<Cart> cartList = caod.getCartListByAccountID(me.getAccountID());
+            request.setAttribute("cartList", cartList);
         } else {
-            request.setAttribute("cartProductCount", 100);
+            request.setAttribute("cartProductCount", 0);
         }
         String url = "";
         String action = request.getParameter("action") == null ? "home" : request.getParameter("action");
@@ -86,7 +89,7 @@ public class Browse extends HttpServlet {
             session.removeAttribute("currentPublisherSelected");
             session.removeAttribute("currentSortOptionSelected");
         }
-        
+
         url = switch (action) {
             case "home" -> {
                 listBookDefault(request, 8);
@@ -131,7 +134,25 @@ public class Browse extends HttpServlet {
             request.setAttribute("cartProductCount", 0);
         } else {
             request.setAttribute("cartProductCount", caod.getProductNumbersOfCartByAccountID(me.getAccountID()));
+            List<Cart> cartList = caod.getCartListByAccountID(me.getAccountID());
+            request.setAttribute("cartList", cartList);
+            Double totalPrice=0.0;
+            Double totalPriceAfterDiscount = 0.0;
+            for (Cart cart : cartList) {
+                Double discountPercent;
+                if(cart.getDiscount().getDiscountPercent() == null){
+                    discountPercent = 0.0;
+                } else {
+                    discountPercent = cart.getDiscount().getDiscountPercent();
+                }
+                Double currentPrice = cart.getBook().getPrice() * (100-discountPercent)/100;
+                totalPrice = totalPrice + cart.getBook().getPrice();
+                totalPriceAfterDiscount = totalPriceAfterDiscount + currentPrice;
+            }
+            request.setAttribute("totalPriceAfterDiscount", totalPriceAfterDiscount);
+            request.setAttribute("totalPrice", totalPrice);
         }
+        
         String action = request.getParameter("action") == null ? "home" : request.getParameter("action");
         String currentPage = request.getParameter("currentPage");
         String url = "";
@@ -180,7 +201,7 @@ public class Browse extends HttpServlet {
                 throw new AssertionError();
         }
         request.getRequestDispatcher(url).forward(request, response);
-        
+
     }
 
     /**
@@ -194,10 +215,10 @@ public class Browse extends HttpServlet {
     private void listBookDefault(HttpServletRequest request, int size) throws ServletException, IOException {
         int page = Integer.parseInt(request.getParameter("page") == null ? "1" : request.getParameter("page"));
         List<Book> bookList = bd.getBookList();
-        
+
         int totalItems = bookList.size();
         int totalPages;
-        
+
         if (totalItems != 0) {
             totalPages = (int) Math.ceil((double) totalItems / size);
         } else {
@@ -208,12 +229,12 @@ public class Browse extends HttpServlet {
         } else if (page > totalPages) {
             page = totalPages;
         }
-        
+
         int fromIndex = (page - 1) * size;
         int toIndex = Math.min(fromIndex + size, totalItems);
-        
+
         List<Book> paginatedBookList = bookList.subList(fromIndex, toIndex);
-        
+
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("bookList", paginatedBookList);
@@ -228,7 +249,7 @@ public class Browse extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     private void listBookWithFilter(HttpServletRequest request, int size) throws ServletException, IOException {
-        
+
         HttpSession session = request.getSession();
         //FilterSearchByGenre
         String addGenre = request.getParameter("addGenre");
@@ -249,13 +270,13 @@ public class Browse extends HttpServlet {
         String sortingOptionValue = request.getParameter("sortingOption");
         String sortingOption = getSortOption(request, session, sortingOptionValue);
         int page = Integer.parseInt(request.getParameter("page") == null ? "1" : request.getParameter("page"));
-        
+
         List<Book> FilterSearchBookList = bd.getBookListWithFilterSearch(page, size, genreSelected, minPrice, maxPrice, authorName, publisherName, sortingOption);
-        
+
         if (null == FilterSearchBookList || FilterSearchBookList.isEmpty()) {
             request.setAttribute("noBook", "There are no books matching your featured search!");
         }
-        
+
         request.setAttribute("bookList", FilterSearchBookList);
         addMessages(request);
     }
@@ -286,7 +307,7 @@ public class Browse extends HttpServlet {
             }
             session.setAttribute("genreSelected", genreSelected);
         }
-        
+
         if (removeGenre != null && !removeGenre.isEmpty()) {
             genreSelected.remove(removeGenre);
         }
@@ -307,14 +328,14 @@ public class Browse extends HttpServlet {
     private Map<String, Double> getPriceRangeSelected(HttpServletRequest request, HttpSession session, String selectedPriceRangeLevel) throws ServletException, IOException {
         Double minPrice = null;
         Double maxPrice = null;
-        
+
         if (selectedPriceRangeLevel == null || selectedPriceRangeLevel.isEmpty()) {
             selectedPriceRangeLevel = (String) session.getAttribute("currentPriceRangeLevelSelected");
             if (selectedPriceRangeLevel == null) {
                 selectedPriceRangeLevel = "Level0";
             }
         }
-        
+
         switch (selectedPriceRangeLevel) {
             case "Level1" -> {
                 minPrice = 0.0;
@@ -340,9 +361,9 @@ public class Browse extends HttpServlet {
                 session.setAttribute("currentPriceRangeLevelSelected", "Level0");
             }
         }
-        
+
         request.setAttribute("currentPriceRangeLevelSelected", selectedPriceRangeLevel);
-        
+
         List<Map<String, String>> priceRangesLevel = List.of(
                 Map.of("value", "Level1", "label", "0$ - 20$"),
                 Map.of("value", "Level2", "label", "20$ - 50$"),
@@ -350,11 +371,11 @@ public class Browse extends HttpServlet {
                 Map.of("value", "Level4", "label", ">100$")
         );
         request.setAttribute("priceRanges", priceRangesLevel);
-        
+
         Map<String, Double> priceRange = new HashMap<>();
         priceRange.put("minPrice", minPrice);
         priceRange.put("maxPrice", maxPrice);
-        
+
         return priceRange;
     }
 
@@ -443,7 +464,7 @@ public class Browse extends HttpServlet {
                 sortingOptionValue = "Nothing";
             }
         }
-        
+
         switch (sortingOptionValue) {
             case "AtoZ", "ZtoA", "IncrementPrice", "DecrementPrice" ->
                 session.setAttribute("currentSortOptionSelected", sortingOptionValue);
@@ -452,29 +473,29 @@ public class Browse extends HttpServlet {
                 sortingOptionValue = "Nothing";
             }
         }
-        
+
         request.setAttribute("currentSortOptionSelected", sortingOptionValue);
-        
+
         return sortingOptionValue;
     }
-    
+
     private void bookDetail(HttpServletRequest request, int bookId) throws ServletException, IOException {
         Book bookDetail = bd.getBookDetailByID(bookId);
         request.setAttribute("bookDetail", bookDetail);
-        
+
         List<Genre> genres = bd.getBookGenresByID(bookId);
         request.setAttribute("genres", genres);
     }
-    
+
     private void addToCart(HttpServletRequest request, Account me) throws ServletException, IOException {
         String quantity = request.getParameter("bookQuantity") == null ? "1" : request.getParameter("bookQuantity");
         int bookID = Integer.parseInt(request.getParameter("bookID"));
         String bookName = request.getParameter("bookTitle");
-        
-//        int cartId = caod.getCartIdByAccountID(me.getAccountID());
+
+        int cartId = caod.getCartIdByAccountID(me.getAccountID());
 //        caod.addBookToCartByBookID(bookID, Integer.parseInt(quantity), cartId);
-        warningMessages.add(String.valueOf(me.getAccountID()));
         successMessages.add("Add \"" + bookName + "\" to your cart succesfully.");
+
         addMessages(request);
     }
 }

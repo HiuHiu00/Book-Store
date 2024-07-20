@@ -1,5 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="java.util.List" %>
 <!DOCTYPE html>
@@ -68,7 +69,7 @@
             </div>
             <div class="container px-0">
                 <nav class="navbar navbar-light bg-white navbar-expand-xl">
-                    <a href="browse?action=bookDetail" class="navbar-brand"><h1 class="text-primary display-6">My Book Store</h1></a>
+                    <a href="browse?action=home" class="navbar-brand"><h1 class="text-primary display-6">My Book Store</h1></a>
                     <button class="navbar-toggler py-2 px-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
                         <span class="fa fa-bars text-primary"></span>
                     </button>
@@ -141,38 +142,67 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <!-- Your cart content goes here -->
                         <c:choose>
                             <c:when test="${not empty sessionScope.isLoggedIn}">          
                                 <ul class="list-group">
-                                    <li class="list-group-item d-flex align-items-center">
-                                        <div class="book-image" style="flex: 0 0 20%;">
-                                            <img src="assets/Template2/images/npic.jpg" alt="Book 1" class="img-fluid">
-                                        </div>
-                                        <div class="book-info ms-3" style="flex: 0 0 70%;">
-                                            <p class="mb-1">Tên sách: Book 1</p>
-                                            <p class="mb-1">Giá: $10</p>
-                                            <p class="mb-1">Số lượng: 1</p>
-                                        </div>
-                                        <div class="remove-button ms-auto" style="flex: 0 0 10%;">
-                                            <button class="btn btn-danger btn-sm rounded-circle">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </div>
-                                    </li>
-                                    
+                                    <c:forEach  items="${cartList}" var="cl">
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <div class="book-image" style="flex: 0 0 20%;">
+                                                <img src="assets/Template2/${cl.book.cover_imagePath}" alt="Book image" class="img-fluid">
+                                            </div>
+                                            <div class="book-info ms-3" style="flex: 0 0 70%;">
+                                                <p class="mb-1">${cl.book.title}</p>
+                                                <c:choose>
+                                                    <c:when test="${cl.discount.discountPercent eq 0}">
+                                                        Price: ${cl.book.price}$
+                                                    </c:when>
+                                                    <c:otherwise>Price: 
+                                                        <span style="color:gray; text-decoration: line-through;">${cl.book.price}$</span>
+                                                        <span >${cl.book.price - cl.book.price*cl.discount.discountPercent/100}$</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                                </p>
+                                                <p class="mb-1">Quantity: ${cl.cartDetail.quantity}</p>
+                                            </div>
+                                            <div class="action-buttons ms-auto" style="flex: 0 0 10%; display: flex; flex-direction: column; gap: 0.5rem;">
+                                                <form>
+                                                <a href="browse?action=bookDetail&bookID=${cl.book.bookID}" class="btn btn-secondary btn-sm rounded-circle">
+                                                    <i class="fas fa-bookmark"></i>
+                                                </a>
+                                                    </form>
+                                                <form action="browse?action=removeFromCart" method="post" class="removeFromCartForm">
+                                                    <input name="currentPage" type="text" value="home" hidden>
+                                                    <a class="btn btn-danger btn-sm rounded-circle" onclick="document.getElementById('removeFromCartForm').submit();">
+                                                        <i class="fas fa-times"></i>
+                                                    </a>
+                                                </form>
+                                                <script>
+                                                    document.querySelectorAll('.removeFromCartForm').forEach(function (button) {
+                                                        button.addEventListener('click', function (event) {
+                                                            event.preventDefault();
+                                                            button.closest('form').submit();
+                                                        });
+                                                    });
+                                                </script>
+                                            </div>
+                                        </li>
+                                    </c:forEach>
                                 </ul>
                             </c:when>
                             <c:otherwise>
                                 <div class="text-center" style="padding: 20px; ">
                                     <h2><img style="max-width: 20%" src="assets/Template2/images/npic.jpg" alt="thumbnail_not_found">
-                                        <strong>You must have an account or log in to have your own shopping cart</strong>
+                                        <strong>You must have an account or log in to see your own shopping cart</strong>
                                     </h2>
                                 </div>
                             </c:otherwise>
                         </c:choose>
                     </div>
                     <div class="modal-footer">
+                        <c:if test="${not empty sessionScope.isLoggedIn}">   
+                            <div>Total:&Tab;${totalPriceAfterDiscount}</div>
+                            <div style="color: #ffb524;font-size: 0.9em">(Saving:&Tab;<fmt:formatNumber value="${totalPrice-totalPriceAfterDiscount}" type="number" minFractionDigits="2" maxFractionDigits="2"/>$)</div>
+                        </c:if>
                         <button type="button" style="width: 100%" class="btn btn-secondary" data-bs-dismiss="modal">Checkout</button>
                         <button type="button" style="width: 100%" class="btn btn-secondary" data-bs-dismiss="modal">Buy Now</button>
                     </div>

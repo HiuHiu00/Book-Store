@@ -1,10 +1,16 @@
 package dao;
 
 import dal.DBContext;
+import entity.Book;
+import entity.Cart;
+import entity.Cart_Detail;
+import entity.Discount;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -98,19 +104,62 @@ public class CartAndOrderDAO {
             closeConnection(connection, ps, rs);
         }
     }
-    
-//      SELECT c.CartID, cd.Quantity,b.Title,b.Price,b.Cover_imagePath, d.DiscountPercent
-//  FROM Cart c
-//  LEFT JOIN Cart_Detail cd ON cd.CartID = c.CartID
-//  JOIN Book b ON b.BookID = cd.BookID
-//  LEFT JOIN Discount d ON d.DiscountID = b.DiscountID
-//  WHERE AccountID = 2
+
+    public List<Cart> getCartListByAccountID(int accountID) {
+        List<Cart> cartList = new ArrayList<>();
+        try {
+            connection = DBContext.getConnection();
+            String query = """
+                                 SELECT c.CartID, cd.Quantity,b.BookID, b.Title,b.Price,b.Cover_imagePath, d.DiscountPercent
+                             FROM Cart c
+                             LEFT JOIN Cart_Detail cd ON cd.CartID = c.CartID
+                             JOIN Book b ON b.BookID = cd.BookID
+                             LEFT JOIN Discount d ON d.DiscountID = b.DiscountID
+                             WHERE AccountID = ?
+                           """;
+            ps = connection.prepareStatement(query);
+            ps.setInt(1, accountID);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Discount discount = Discount.builder()
+                        .DiscountPercent(rs.getDouble("DiscountPercent"))
+                        .build();
+                Book book = Book.builder()
+                        .BookID(rs.getInt("BookID"))
+                        .Title(rs.getString("Title"))
+                        .Price(rs.getDouble("Price"))
+                        .Cover_imagePath(rs.getString("Cover_imagePath"))
+                        .build();
+                Cart_Detail cartDetail = Cart_Detail.builder()
+                        .Quantity(rs.getInt("Quantity"))
+                        .build();
+                Cart cart = Cart.builder()
+                        .CartID(rs.getInt("CartID"))
+                        .cartDetail(cartDetail)
+                        .book(book)
+                        .discount(discount)
+                        .build();
+                cartList.add(cart);
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error occurred while get all book list", e);
+        } finally {
+            closeConnection(connection, ps, rs);
+        }
+        return cartList;
+    }
+
+
 }
 
 class Test1 {
 
     public static void main(String[] args) {
         CartAndOrderDAO c = new CartAndOrderDAO();
-        System.out.println(c.getProductNumbersOfCartByAccountID(2));
+        List<Cart> ss = c.getCartListByAccountID(2);
+        for (Cart s : ss) {
+            System.out.println(s.getBook().getBookID());
+            System.out.println("============================");
+        }
     }
 }

@@ -8,6 +8,7 @@ import dao.BrowseDAO;
 import dao.CartAndOrderDAO;
 import entity.Account;
 import entity.Book;
+import entity.Cart;
 import entity.Genre;
 import entity.GenreProvider;
 import jakarta.servlet.ServletContext;
@@ -164,6 +165,24 @@ public class Authent extends HttpServlet {
                     request.setAttribute("cartProductCount", 0);
                 } else {
                     request.setAttribute("cartProductCount", caod.getProductNumbersOfCartByAccountID(me.getAccountID()));
+                    List<Cart> cartList = caod.getCartListByAccountID(me.getAccountID());
+                    request.setAttribute("cartList", cartList);
+                    Double totalPrice = 0.0;
+                    Double totalPriceAfterDiscount = 0.0;
+                    for (Cart cart : cartList) {
+                        Double discountPercent;
+                        if (cart.getDiscount().getDiscountPercent() == null) {
+                            discountPercent = 0.0;
+                        } else {
+                            discountPercent = cart.getDiscount().getDiscountPercent();
+                        }
+                        Double currentPrice = cart.getBook().getPrice() * (100 - discountPercent) / 100;
+                        totalPrice = totalPrice + cart.getBook().getPrice();
+                        totalPriceAfterDiscount = totalPriceAfterDiscount + currentPrice;
+                    }
+                    request.setAttribute("totalPriceAfterDiscount", totalPriceAfterDiscount);
+                    request.setAttribute("totalPrice", totalPrice);
+
                 }
 
                 listBookDefault(request, 8);
