@@ -105,6 +105,22 @@ public class CartAndOrderDAO {
         }
     }
 
+    public void removeBookFromCartByBookID(int bookID) {
+        try {
+            connection = DBContext.getConnection();
+            String query = """
+                           Delete From Cart_Detail WHERE BookID = ?
+                           """;
+            ps = connection.prepareStatement(query);
+            ps.setInt(1, bookID);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error occurred while remove book from cart by book ID", e);
+        } finally {
+            closeConnection(connection, ps, rs);
+        }
+    }
+
     public List<Cart> getCartListByAccountID(int accountID) {
         List<Cart> cartList = new ArrayList<>();
         try {
@@ -149,8 +165,41 @@ public class CartAndOrderDAO {
         return cartList;
     }
 
+    public boolean isBookExistedInCart(int bookID, int cartID) {
+        try {
+            connection = DBContext.getConnection();
+            String query = "SELECT * FROM Cart_Detail WHERE BookID = ? AND CartID = ? ";
+            ps = connection.prepareStatement(query);
+            ps.setInt(1, bookID);
+            ps.setInt(2, cartID);
+            rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error occurred while checking book existed int cart by bookID and cartID by", e);
+            return false;
+        } finally {
+            closeConnection(connection, ps, rs);
+        }
+    }
+    
+    public void increaseBookQuantityByOne(int bookID, int cartID, int quantity) {
+        try {
+            connection = DBContext.getConnection();
+            String query = "UPDATE Cart_Detail SET Quantity = Quantity + ? WHERE  BookID = ? AND CartID = ? ";
+            ps = connection.prepareStatement(query);
+            ps.setInt(1, quantity);
+            ps.setInt(2, bookID);
+            ps.setInt(3, cartID);
+            ps.executeUpdate();
 
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error occurred while update book quantity of cart", e);
+        } finally {
+            closeConnection(connection, ps, rs);
+        }
+    }
 }
+
 
 class Test1 {
 

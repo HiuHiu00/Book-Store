@@ -182,7 +182,6 @@ public class Authent extends HttpServlet {
                     }
                     request.setAttribute("totalPriceAfterDiscount", totalPriceAfterDiscount);
                     request.setAttribute("totalPrice", totalPrice);
-
                 }
 
                 listBookDefault(request, 8);

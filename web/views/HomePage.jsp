@@ -166,12 +166,14 @@
                                             </div>
                                             <div class="action-buttons ms-auto" style="flex: 0 0 10%; display: flex; flex-direction: column; gap: 0.5rem;">
                                                 <form>
-                                                <a href="browse?action=bookDetail&bookID=${cl.book.bookID}" class="btn btn-secondary btn-sm rounded-circle">
-                                                    <i class="fas fa-bookmark"></i>
-                                                </a>
-                                                    </form>
+                                                    <a href="browse?action=bookDetail&bookID=${cl.book.bookID}" class="btn btn-secondary btn-sm rounded-circle">
+                                                        <i class="fas fa-bookmark"></i>
+                                                    </a>
+                                                </form>
                                                 <form action="browse?action=removeFromCart" method="post" class="removeFromCartForm">
                                                     <input name="currentPage" type="text" value="home" hidden>
+                                                    <input name="bookIDToRemove" type="text" value="${cl.book.bookID}" hidden>
+                                                    <input name="bookTitleToRemove" type="text" value="${cl.book.title}" hidden>
                                                     <a class="btn btn-danger btn-sm rounded-circle" onclick="document.getElementById('removeFromCartForm').submit();">
                                                         <i class="fas fa-times"></i>
                                                     </a>
@@ -200,36 +202,36 @@
                     </div>
                     <div class="modal-footer">
                         <c:if test="${not empty sessionScope.isLoggedIn}">   
-                            <div>Total:&Tab;${totalPriceAfterDiscount}</div>
+                            <div>Total:&Tab;<fmt:formatNumber value="${totalPriceAfterDiscount}" type="number" minFractionDigits="2" maxFractionDigits="2"/>$</div>
                             <div style="color: #ffb524;font-size: 0.9em">(Saving:&Tab;<fmt:formatNumber value="${totalPrice-totalPriceAfterDiscount}" type="number" minFractionDigits="2" maxFractionDigits="2"/>$)</div>
                         </c:if>
-                        <button type="button" style="width: 100%" class="btn btn-secondary" data-bs-dismiss="modal">Checkout</button>
-                        <button type="button" style="width: 100%" class="btn btn-secondary" data-bs-dismiss="modal">Buy Now</button>
+                        <button onclick="window.location.href = 'browse?action=checkout'" type="button" style="width: 100%" class="btn btn-secondary" data-bs-dismiss="modal" <c:if test="${ empty sessionScope.isLoggedIn}">disabled</c:if> >Checkout</button>
+                        <button onclick="window.location.href = 'browse?action=buyNow'" type="button" style="width: 100%" class="btn btn-secondary" data-bs-dismiss="modal" <c:if test="${ empty sessionScope.isLoggedIn}">disabled</c:if>>Buy Now</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <!--Modal End--> 
+            <!--Modal End--> 
 
-        <!-- Hero Start -->
-        <div class="container-fluid py-5 mb-5 hero-header">
-            <div class="container py-5">
-                <div class="row g-5 align-items-center">
-                    <div class="col-md-12 col-lg-7">
-                        <h4 class="mb-3 text-secondary">Life is Short, Read Fast.</h4>
-                        <h1 class="mb-5 display-3 text-primary">Choose your favorite book genre quickly</h1>
-                        <!--                        <div class="position-relative mx-auto">
-                                                    <input class="form-control border-2 border-secondary w-75 py-3 px-4 rounded-pill" type="number" placeholder="Search">
-                                                    <button type="submit" class="btn btn-primary border-2 border-secondary py-3 px-4 position-absolute rounded-pill text-white h-100" style="top: 0; right: 25%;">Submit Now</button>
-                                                </div>-->
-                    </div>
-                    <div class="col-md-12 col-lg-5">
-                        <div id="carouselId" class="carousel slide position-relative" data-bs-ride="carousel">
-                            <div class="carousel-inner" role="listbox">
+            <!-- Hero Start -->
+            <div class="container-fluid py-5 mb-5 hero-header">
+                <div class="container py-5">
+                    <div class="row g-5 align-items-center">
+                        <div class="col-md-12 col-lg-7">
+                            <h4 class="mb-3 text-secondary">Life is Short, Read Fast.</h4>
+                            <h1 class="mb-5 display-3 text-primary">Choose your favorite book genre quickly</h1>
+                            <!--                        <div class="position-relative mx-auto">
+                                                        <input class="form-control border-2 border-secondary w-75 py-3 px-4 rounded-pill" type="number" placeholder="Search">
+                                                        <button type="submit" class="btn btn-primary border-2 border-secondary py-3 px-4 position-absolute rounded-pill text-white h-100" style="top: 0; right: 25%;">Submit Now</button>
+                                                    </div>-->
+                        </div>
+                        <div class="col-md-12 col-lg-5">
+                            <div id="carouselId" class="carousel slide position-relative" data-bs-ride="carousel">
+                                <div class="carousel-inner" role="listbox">
                                 <c:forEach items="${book_genre_list}" var="bgl" varStatus="status">
                                     <div class="carousel-item rounded ${status.first ? 'active' : ''}">
                                         <img src="assets/Template2/images/${bgl.genreImageUrl}" class="img-fluid w-100 h-100 bg-secondary rounded" alt="First slide">
-                                        <a href="browse?action=${bgl.genre}" class="btn px-4 py-2 text-white rounded">${bgl.genre}</a>
+                                        <a href="browse?action=bookList&addGenre=${bgl.genre}" class="btn px-4 py-2 text-white rounded">${bgl.genre}</a>
                                     </div>
                                 </c:forEach>
                             </div>

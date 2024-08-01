@@ -72,25 +72,75 @@ public class Browse extends HttpServlet {
         clearMessages();
         HttpSession session = request.getSession();
         Account me = (Account) session.getAttribute("accountLoggedIn");
-        if (me != null) {
-            request.setAttribute("cartProductCount", caod.getProductNumbersOfCartByAccountID(me.getAccountID()));
-            successMessages.add(String.valueOf(me.getAccountID()));
-            List<Cart> cartList = caod.getCartListByAccountID(me.getAccountID());
-            request.setAttribute("cartList", cartList);
-        } else {
-            request.setAttribute("cartProductCount", 0);
-        }
+
         String url = "";
+        String page = request.getParameter("action") == null ? "home" : request.getParameter("action");
+
+        url = determinePageUrl(page, request, session);
+        processCart(request, me);
+        request.getRequestDispatcher(url).forward(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        clearMessages();
+        HttpSession session = request.getSession();
+        Account me = (Account) session.getAttribute("accountLoggedIn");
+
         String action = request.getParameter("action") == null ? "home" : request.getParameter("action");
-        if (!"bookList".equals(action)) {
+        String currentPage = request.getParameter("currentPage");
+        String url = "";
+        switch (action) {
+            case "addToCart" -> {
+                Boolean isLogged = (Boolean) session.getAttribute("isLoggedIn");
+                if (isLogged != null && isLogged.equals(true)) {
+                    addToCart(request, me);
+                    url = determinePageUrl(currentPage, request, session);
+                } else {
+                    warningMessages.add("You must login before you want to add to cart or buy a book!");
+                    addMessages(request);
+                    url = "views/Login.jsp";
+                }
+            }
+            case "removeFromCart" -> {
+                removeFromCart(request);
+                url = determinePageUrl(currentPage, request, session);
+            }
+            default ->
+                throw new AssertionError();
+        }
+        processCart(request, me);
+        request.getRequestDispatcher(url).forward(request, response);
+
+    }
+
+    /**
+     * Determines the URL to forward the request based on the current page. Sets
+     * the necessary attributes in the request for each page type.
+     *
+     * @param page the current page identifier to determine the URL and set
+     * relevant attributes.
+     * @param request The HttpServletRequest.
+     * @return the URL to forward the request to, based on the current page.
+     */
+    private String determinePageUrl(String page, HttpServletRequest request, HttpSession session) throws ServletException, IOException {
+        if (!"bookList".equals(page)) {
             session.removeAttribute("genreSelected");
             session.removeAttribute("currentPriceRangeLevelSelected");
             session.removeAttribute("currentAuthorSelected");
             session.removeAttribute("currentPublisherSelected");
             session.removeAttribute("currentSortOptionSelected");
         }
-
-        url = switch (action) {
+        String url = switch (page) {
             case "home" -> {
                 listBookDefault(request, 8);
                 List<Genre> genreList = GenreProvider.getGenreList();
@@ -113,95 +163,41 @@ public class Browse extends HttpServlet {
             default ->
                 "index.html";
         };
-        request.getRequestDispatcher(url).forward(request, response);
+
+        return url;
     }
 
     /**
-     * Handles the HTTP <code>POST</code> method.
+     * Processes the cart for the given account and sets the necessary
+     * attributes in the request.
      *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @param request The HttpServletRequest.
+     * @param me The account for which the cart is to be processed. If null, the
+     * cart is considered empty.
      */
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        clearMessages();
-        HttpSession session = request.getSession();
-        Account me = (Account) session.getAttribute("accountLoggedIn");
+    private void processCart(HttpServletRequest request, Account me) throws ServletException, IOException {
         if (me == null) {
             request.setAttribute("cartProductCount", 0);
         } else {
             request.setAttribute("cartProductCount", caod.getProductNumbersOfCartByAccountID(me.getAccountID()));
             List<Cart> cartList = caod.getCartListByAccountID(me.getAccountID());
             request.setAttribute("cartList", cartList);
-            Double totalPrice=0.0;
+            Double totalPrice = 0.0;
             Double totalPriceAfterDiscount = 0.0;
             for (Cart cart : cartList) {
                 Double discountPercent;
-                if(cart.getDiscount().getDiscountPercent() == null){
+                if (cart.getDiscount().getDiscountPercent() == null) {
                     discountPercent = 0.0;
                 } else {
                     discountPercent = cart.getDiscount().getDiscountPercent();
                 }
-                Double currentPrice = cart.getBook().getPrice() * (100-discountPercent)/100;
+                Double currentPrice = cart.getBook().getPrice() * (100 - discountPercent) / 100;
                 totalPrice = totalPrice + cart.getBook().getPrice();
                 totalPriceAfterDiscount = totalPriceAfterDiscount + currentPrice;
             }
             request.setAttribute("totalPriceAfterDiscount", totalPriceAfterDiscount);
             request.setAttribute("totalPrice", totalPrice);
         }
-        
-        String action = request.getParameter("action") == null ? "home" : request.getParameter("action");
-        String currentPage = request.getParameter("currentPage");
-        String url = "";
-        if (!"bookList".equals(currentPage)) {
-            session.removeAttribute("genreSelected");
-            session.removeAttribute("currentPriceRangeLevelSelected");
-            session.removeAttribute("currentAuthorSelected");
-            session.removeAttribute("currentPublisherSelected");
-            session.removeAttribute("currentSortOptionSelected");
-        }
-        switch (action) {
-            case "addToCart" -> {
-                Boolean isLogged = (Boolean) session.getAttribute("isLoggedIn");
-                if (isLogged != null && isLogged.equals(true)) {
-                    addToCart(request, me);
-                    url = switch (currentPage) {
-                        case "home" -> {
-                            listBookDefault(request, 8);
-                            List<Genre> genreList = GenreProvider.getGenreList();
-                            request.setAttribute("book_genre_list", genreList);
-                            yield "views/HomePage.jsp";
-                        }
-                        case "bookList" -> {
-                            listBookWithFilter(request, 6);
-                            List<String> genreNames = GenreProvider.getGenreList().stream()
-                                    .map(Genre::getGenre)
-                                    .map(genre -> "'" + genre + "'")
-                                    .collect(Collectors.toList());
-                            request.setAttribute("book_genre_name_list", genreNames);
-                            yield "views/BookList.jsp";
-                        }
-                        case "bookDetail" -> {
-                            bookDetail(request, Integer.parseInt(request.getParameter("bookID")));
-                            yield "views/BookDetail.jsp";
-                        }
-                        default ->
-                            "index.html";
-                    };
-                } else {
-                    warningMessages.add("You must login before you want to add to cart or buy a book!");
-                    addMessages(request);
-                    url = "views/Login.jsp";
-                }
-            }
-            default ->
-                throw new AssertionError();
-        }
-        request.getRequestDispatcher(url).forward(request, response);
-
     }
 
     /**
@@ -479,6 +475,13 @@ public class Browse extends HttpServlet {
         return sortingOptionValue;
     }
 
+    /**
+     *
+     * @param request
+     * @param bookId
+     * @throws ServletException
+     * @throws IOException
+     */
     private void bookDetail(HttpServletRequest request, int bookId) throws ServletException, IOException {
         Book bookDetail = bd.getBookDetailByID(bookId);
         request.setAttribute("bookDetail", bookDetail);
@@ -487,14 +490,42 @@ public class Browse extends HttpServlet {
         request.setAttribute("genres", genres);
     }
 
+    /**
+     *
+     * @param request
+     * @param me
+     * @throws ServletException
+     * @throws IOException
+     */
     private void addToCart(HttpServletRequest request, Account me) throws ServletException, IOException {
         String quantity = request.getParameter("bookQuantity") == null ? "1" : request.getParameter("bookQuantity");
         int bookID = Integer.parseInt(request.getParameter("bookID"));
         String bookName = request.getParameter("bookTitle");
-
         int cartId = caod.getCartIdByAccountID(me.getAccountID());
-//        caod.addBookToCartByBookID(bookID, Integer.parseInt(quantity), cartId);
-        successMessages.add("Add \"" + bookName + "\" to your cart succesfully.");
+
+        if (caod.isBookExistedInCart(bookID, cartId)) {
+            caod.increaseBookQuantityByOne(bookID, cartId,  Integer.parseInt(quantity)); 
+            successMessages.add("Increment \"" + bookName + "\" quantity in your cart by "+ quantity +" succesfully.");
+        } else {
+            caod.addBookToCartByBookID(bookID, Integer.parseInt(quantity), cartId);
+            successMessages.add("Add \"" + bookName + "\" to your cart succesfully.");
+        }
+
+        addMessages(request);
+    }
+
+    /**
+     *
+     * @param request
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void removeFromCart(HttpServletRequest request) throws ServletException, IOException {
+        int bookID = Integer.parseInt(request.getParameter("bookIDToRemove"));
+        String bookName = request.getParameter("bookTitleToRemove");
+
+        caod.removeBookFromCartByBookID(bookID);
+        successMessages.add("Remove \"" + bookName + "\" from your cart succesfully. ");
 
         addMessages(request);
     }

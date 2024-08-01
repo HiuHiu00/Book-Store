@@ -81,7 +81,7 @@
                         </div>
                         <div class="d-flex m-3 me-0">
                             <!--<button class="btn-search btn border border-secondary btn-md-square rounded-circle bg-white me-4" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="fas fa-search text-primary"></i></button>-->
-                            <a href="#" class="position-relative me-4 my-auto">
+                            <a href="#" class="position-relative me-4 my-auto" data-bs-toggle="modal" data-bs-target="#cartModal">
                                 <i class="fa fa-shopping-bag fa-2x"></i>
                                 <span class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style="top: -5px; left: 15px; height: 20px; min-width: 20px;">${requestScope.cartProductCount}</span>
                             </a>
@@ -106,33 +106,134 @@
             </div>
         </div>
         <!-- Navbar End -->
+        <!--Modal Start--> 
+        <style>
+            .modal-dialog-right {
+                position: absolute;
+                top: 0;
+                right: 0;
+                margin: 0;
+                height: 100%;
+            }
+            .modal-dialog-scrollable {
+                max-height: 100%;
+                width: 30%;
+            }
+            .book-image img {
+                max-width: 100%;
+                height: auto;
+            }
+            .book-info p {
+                margin: 0;
+            }
+        </style>
+        <div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-dialog-right">
+                <div class="modal-content" style="height: 100%">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="cartModalLabel">Your Cart</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <c:choose>
+                            <c:when test="${not empty sessionScope.isLoggedIn}">          
+                                <ul class="list-group">
+                                    <c:forEach  items="${cartList}" var="cl">
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <div class="book-image" style="flex: 0 0 20%;">
+                                                <img src="assets/Template2/${cl.book.cover_imagePath}" alt="Book image" class="img-fluid">
+                                            </div>
+                                            <div class="book-info ms-3" style="flex: 0 0 70%;">
+                                                <p class="mb-1">${cl.book.title}</p>
+                                                <c:choose>
+                                                    <c:when test="${cl.discount.discountPercent eq 0}">
+                                                        Price: ${cl.book.price}$
+                                                    </c:when>
+                                                    <c:otherwise>Price: 
+                                                        <span style="color:gray; text-decoration: line-through;">${cl.book.price}$</span>
+                                                        <span >${cl.book.price - cl.book.price*cl.discount.discountPercent/100}$</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                                </p>
+                                                <p class="mb-1">Quantity: ${cl.cartDetail.quantity}</p>
+                                            </div>
+                                            <div class="action-buttons ms-auto" style="flex: 0 0 10%; display: flex; flex-direction: column; gap: 0.5rem;">
+                                                <form>
+                                                    <a href="browse?action=bookDetail&bookID=${cl.book.bookID}" class="btn btn-secondary btn-sm rounded-circle">
+                                                        <i class="fas fa-bookmark"></i>
+                                                    </a>
+                                                </form>
+                                                <form action="browse?action=removeFromCart" method="post" class="removeFromCartForm">
+                                                    <input name="currentPage" type="text" value="bookDetail" hidden>
+                                                    <input name="bookIDToRemove" type="text" value="${cl.book.bookID}" hidden>
+                                                    <c:if test="${not empty requestScope.bookDetail}">
+                                                        <input name="bookID" type="number" value="${requestScope.bookDetail.bookID}" hidden>
+                                                    </c:if>
+                                                    <input name="bookTitleToRemove" type="text" value="${cl.book.title}" hidden>
+                                                    <a class="btn btn-danger btn-sm rounded-circle" onclick="document.getElementById('removeFromCartForm').submit();">
+                                                        <i class="fas fa-times"></i>
+                                                    </a>
+                                                </form>
+                                                <script>
+                                                    document.querySelectorAll('.removeFromCartForm').forEach(function (button) {
+                                                        button.addEventListener('click', function (event) {
+                                                            event.preventDefault();
+                                                            button.closest('form').submit();
+                                                        });
+                                                    });
+                                                </script>
+                                            </div>
+                                        </li>
+                                    </c:forEach>
+                                </ul>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="text-center" style="padding: 20px; ">
+                                    <h2><img style="max-width: 20%" src="assets/Template2/images/npic.jpg" alt="thumbnail_not_found">
+                                        <strong>You must have an account or log in to see your own shopping cart</strong>
+                                    </h2>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                    <div class="modal-footer">
+                        <c:if test="${not empty sessionScope.isLoggedIn}">   
+                            <div>Total:&Tab;<fmt:formatNumber value="${totalPriceAfterDiscount}" type="number" minFractionDigits="2" maxFractionDigits="2"/>$</div>
+                            <div style="color: #ffb524;font-size: 0.9em">(Saving:&Tab;<fmt:formatNumber value="${totalPrice-totalPriceAfterDiscount}" type="number" minFractionDigits="2" maxFractionDigits="2"/>$)</div>
+                        </c:if>
+                        <button onclick="window.location.href = 'browse?action=checkout'" type="button" style="width: 100%" class="btn btn-secondary" data-bs-dismiss="modal" <c:if test="${ empty sessionScope.isLoggedIn}">disabled</c:if> >Checkout</button>
+                        <button onclick="window.location.href = 'browse?action=buyNow'" type="button" style="width: 100%" class="btn btn-secondary" data-bs-dismiss="modal" <c:if test="${ empty sessionScope.isLoggedIn}">disabled</c:if>>Buy Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--Modal End--> 
 
-
-        <!--         Modal Search Start 
-                <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-fullscreen">
-                        <div class="modal-content rounded-0">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLabel">Search by keyword</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body d-flex align-items-center">
-                                <div class="input-group w-75 mx-auto d-flex">
-                                    <input type="search" class="form-control p-3" placeholder="keywords" aria-describedby="search-icon-1">
-                                    <span id="search-icon-1" class="input-group-text p-3"><i class="fa fa-search"></i></span>
+            <!--         Modal Search Start 
+                    <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-fullscreen">
+                            <div class="modal-content rounded-0">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">Search by keyword</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body d-flex align-items-center">
+                                    <div class="input-group w-75 mx-auto d-flex">
+                                        <input type="search" class="form-control p-3" placeholder="keywords" aria-describedby="search-icon-1">
+                                        <span id="search-icon-1" class="input-group-text p-3"><i class="fa fa-search"></i></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                 Modal Search End -->
+                     Modal Search End -->
 
-        <!-- Single Product Start -->
-        <div class="container-fluid py-5 mt-5" >
-            <div class="container py-5" style="margin-top: 50px;">
-                <div class="row g-4 mb-5">
-                    <div class="col-lg-12 col-xl-12">
-                        <div class="row g-4">
+            <!-- Single Product Start -->
+            <div class="container-fluid py-5 mt-5" >
+                <div class="container py-5" style="margin-top: 50px;">
+                    <div class="row g-4 mb-5">
+                        <div class="col-lg-12 col-xl-12">
+                            <div class="row g-4">
                             <c:if test="${not empty requestScope.bookDetail}">
                                 <div class="col-lg-3">
                                     <div class="border rounded">
@@ -256,7 +357,7 @@
 
                                             <input name="currentPage" type="text" value="bookDetail" hidden>
                                             <input name="bookID" type="number" value="${requestScope.bookDetail.bookID}" hidden>
-                                            <input name="bookName" type="text" value="${requestScope.bookDetail.title}" hidden>
+                                            <input name="bookTitle" type="text" value="${requestScope.bookDetail.title}" hidden>
                                             <button type="submit" class="btn border border-secondary rounded-pill px-4 py-2 mb-4 text-primary" style="width: 100%;">
                                                 <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
                                             </button>
@@ -491,34 +592,34 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
         <script>
 
-            (function ($) {
-                "use strict";
-                $('.quantityBook button').on('click', function () {
-                    var button = $(this);
-                    var input = button.parent().parent().find('input[name="bookQuantityDisplay"]');
-                    var hiddenInput = button.parent().parent().find('input[name="bookQuantity"]');
-                    var oldValue = parseFloat(input.val());
-                    var max = parseFloat(input.attr('max'));
-                    var newVal;
+                            (function ($) {
+                                "use strict";
+                                $('.quantityBook button').on('click', function () {
+                                    var button = $(this);
+                                    var input = button.parent().parent().find('input[name="bookQuantityDisplay"]');
+                                    var hiddenInput = button.parent().parent().find('input[name="bookQuantity"]');
+                                    var oldValue = parseFloat(input.val());
+                                    var max = parseFloat(input.attr('max'));
+                                    var newVal;
 
-                    if (button.hasClass('btn-plus')) {
-                        if (oldValue < max) {
-                            newVal = oldValue + 1;
-                        } else {
-                            newVal = max;
-                        }
-                    } else {
-                        if (oldValue > 1) {
-                            newVal = oldValue - 1;
-                        } else {
-                            newVal = 1;
-                        }
-                    }
+                                    if (button.hasClass('btn-plus')) {
+                                        if (oldValue < max) {
+                                            newVal = oldValue + 1;
+                                        } else {
+                                            newVal = max;
+                                        }
+                                    } else {
+                                        if (oldValue > 1) {
+                                            newVal = oldValue - 1;
+                                        } else {
+                                            newVal = 1;
+                                        }
+                                    }
 
-                    input.val(newVal);
-                    hiddenInput.val(newVal);
-                });
-            })(jQuery);
+                                    input.val(newVal);
+                                    hiddenInput.val(newVal);
+                                });
+                            })(jQuery);
         </script>
         <script>
 
