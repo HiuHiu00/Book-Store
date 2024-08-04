@@ -160,6 +160,10 @@ public class Browse extends HttpServlet {
                 bookDetail(request, Integer.parseInt(request.getParameter("bookID")));
                 yield "views/BookDetail.jsp";
             }
+            case "buyNow" -> {
+                checkout(request);
+                yield "views/Checkout.jsp";
+            }
             default ->
                 "index.html";
         };
@@ -528,5 +532,9 @@ public class Browse extends HttpServlet {
         successMessages.add("Remove \"" + bookName + "\" from your cart succesfully. ");
 
         addMessages(request);
+    }
+    
+    private void checkout(HttpServletRequest request) throws ServletException, IOException {
+        
     }
 }

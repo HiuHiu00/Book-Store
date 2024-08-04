@@ -9,7 +9,7 @@ import lombok.Data;
 @lombok.NoArgsConstructor
 public class Account_Detail {
     private int AccountDetailID;
-    private String Usermame;
+    private String Username;
     private String Address;
     private boolean Gender;
     private String PhoneNumber;

@@ -112,7 +112,7 @@
                                 <div class="dropdown-menu m-0 bg-secondary rounded-0">
                                     <c:choose>
                                         <c:when test="${not empty sessionScope.isLoggedIn}">          
-                                            <a href="#" class="dropdown-item">Profile</a>
+                                            <a href="authent?action=profile" class="dropdown-item">Profile</a>
                                             <a href="authent?action=logout" class="dropdown-item">Logout</a>
                                         </c:when>
                                         <c:otherwise>

@@ -2,6 +2,7 @@ package dao;
 
 import dal.DBContext;
 import entity.Account;
+import entity.Account_Detail;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -91,6 +92,32 @@ public class CustomerDAO {
             return null;
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error occurred while retrieving password by email", e);
+            return null;
+        } finally {
+            closeConnection(connection, ps, rs);
+        }
+    }
+    
+    /**
+     * Retrieves the password for an account by email.
+     *
+     * @param accountID The account ID of the account.
+     * @return {@code password} of the account, or {@code null} if no account is
+     * found.
+     */
+    public String getPasswordByAccountID(int accountID) {
+        try {
+            connection = DBContext.getConnection();
+            String query = "SELECT password FROM Account WHERE AccountID=?";
+            ps = connection.prepareStatement(query);
+            ps.setInt(1, accountID);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("password");
+            }
+            return null;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error occurred while retrieving password by accountID", e);
             return null;
         } finally {
             closeConnection(connection, ps, rs);
@@ -287,20 +314,70 @@ public class CustomerDAO {
         }
         return null;
     }
+    public Account getAccountInformationByAccountID(int accountID) {
+        try {
+            connection = DBContext.getConnection();
+            String query = """
+                             SELECT a.*, ad.Username, ad.Gender, ad.[Address], ad.PhoneNumber,ad.ImagePath
+                             FROM Account a
+                             LEFT JOIN Account_Detail ad ON ad.AccountID = a.AccountID
+                             WHERE a.AccountID = ?
+                           """;
+            ps = connection.prepareStatement(query);
+            ps.setInt(1, accountID);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                Account_Detail accountDetail = Account_Detail.builder()
+                        .Username(rs.getString("Username"))
+                        .Gender(rs.getBoolean("Gender"))
+                        .Address(rs.getString("Address"))
+                        .PhoneNumber(rs.getString("PhoneNumber"))
+                        .ImagePath(rs.getString("ImagePath"))
+                        .build();
+                Account acc = Account.builder()
+                        .AccountID(rs.getInt("AccountID"))
+                        .Email(rs.getString("Email"))
+                        .RoleID(rs.getInt("RoleID"))
+                        .accountDetail(accountDetail)
+                        .build();
+                return acc;
+            }
 
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error occurred while get account information by email", e);
+        } finally {
+            closeConnection(connection, ps, rs);
+        }
+        return null;
+    }
+    
+    public void updateAccountInformation(int accountID, String username, String phoneNumber, boolean gender, String address){
+          try {
+            connection = DBContext.getConnection();
+            String query = """
+                           UPDATE Account_Detail
+                           SET Username = ?, PhoneNumber = ?, Gender = ?, [Address] = ?
+                           WHERE AccountID = ?
+                           """;
+            ps = connection.prepareStatement(query);
+            ps.setString(1, username);
+            ps.setString(2, phoneNumber);
+            ps.setBoolean(3, gender);
+            ps.setString(4, address);
+            ps.setInt(5, accountID);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error occurred while update infomation of account by accountID", e);
+        } finally {
+            closeConnection(connection, ps, rs);
+        }
+    }
 }
 
 class TestCustomerDAO {
 
     public static void main(String[] args) {
         CustomerDAO cd = new CustomerDAO();
-        Account account = cd.getPublicAccountInfobyEmail("t@gmail.com");
-        if (account != null) {
-            System.out.println("AccountID: " + account.getAccountID());
-            System.out.println("Email: " + account.getEmail());
-            System.out.println("RoleID: " + account.getRoleID());
-        } else {
-            System.out.println("No account found with the provided email.");
-        }
+        System.out.println(cd.getAccountInformationByAccountID(2));
     }
 }

@@ -97,6 +97,14 @@ public class Authent extends HttpServlet {
                 logout(request, response);
                 yield "views/Login.jsp";
             }
+            case "profile" -> {
+                HttpSession session = request.getSession();
+                Account me = (Account) session.getAttribute("accountLoggedIn");
+                processCart(request, me);
+                Account profile = cd.getAccountInformationByAccountID(me.getAccountID());
+                request.setAttribute("profile", profile);
+                yield "views/CustomerProfile.jsp";
+            }
             default ->
                 "index.html";
         };
@@ -126,6 +134,10 @@ public class Authent extends HttpServlet {
                 sendOtp(request, response);
             case "adminLogin" ->
                 adminLogin(request, response);
+            case "updateProfile" ->
+                updateProfile(request, response);
+            case "changePassword" ->
+                changePassword(request, response);
             default ->
                 throw new AssertionError();
         }
@@ -161,28 +173,7 @@ public class Authent extends HttpServlet {
                 Account me = cd.getPublicAccountInfobyEmail(email);
                 session.setAttribute("accountLoggedIn", me);
                 session.setAttribute("isLoggedIn", true);
-                if (me == null) {
-                    request.setAttribute("cartProductCount", 0);
-                } else {
-                    request.setAttribute("cartProductCount", caod.getProductNumbersOfCartByAccountID(me.getAccountID()));
-                    List<Cart> cartList = caod.getCartListByAccountID(me.getAccountID());
-                    request.setAttribute("cartList", cartList);
-                    Double totalPrice = 0.0;
-                    Double totalPriceAfterDiscount = 0.0;
-                    for (Cart cart : cartList) {
-                        Double discountPercent;
-                        if (cart.getDiscount().getDiscountPercent() == null) {
-                            discountPercent = 0.0;
-                        } else {
-                            discountPercent = cart.getDiscount().getDiscountPercent();
-                        }
-                        Double currentPrice = cart.getBook().getPrice() * (100 - discountPercent) / 100;
-                        totalPrice = totalPrice + cart.getBook().getPrice();
-                        totalPriceAfterDiscount = totalPriceAfterDiscount + currentPrice;
-                    }
-                    request.setAttribute("totalPriceAfterDiscount", totalPriceAfterDiscount);
-                    request.setAttribute("totalPrice", totalPrice);
-                }
+                processCart(request, me);
 
                 listBookDefault(request, 8);
                 List<Genre> genreList = GenreProvider.getGenreList();
@@ -485,6 +476,92 @@ public class Authent extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("bookList", paginatedBookList);
+    }
+
+    /**
+     * Processes the cart for the given account and sets the necessary
+     * attributes in the request.
+     *
+     * @param request The HttpServletRequest.
+     * @param me The account for which the cart is to be processed. If null, the
+     * cart is considered empty.
+     */
+    private void processCart(HttpServletRequest request, Account me) throws ServletException, IOException {
+        if (me == null) {
+            request.setAttribute("cartProductCount", 0);
+        } else {
+            request.setAttribute("cartProductCount", caod.getProductNumbersOfCartByAccountID(me.getAccountID()));
+            List<Cart> cartList = caod.getCartListByAccountID(me.getAccountID());
+            request.setAttribute("cartList", cartList);
+            Double totalPrice = 0.0;
+            Double totalPriceAfterDiscount = 0.0;
+            for (Cart cart : cartList) {
+                Double discountPercent;
+                if (cart.getDiscount().getDiscountPercent() == null) {
+                    discountPercent = 0.0;
+                } else {
+                    discountPercent = cart.getDiscount().getDiscountPercent();
+                }
+                Double currentPrice = cart.getBook().getPrice() * (100 - discountPercent) / 100;
+                totalPrice = totalPrice + cart.getBook().getPrice();
+                totalPriceAfterDiscount = totalPriceAfterDiscount + currentPrice;
+            }
+            request.setAttribute("totalPriceAfterDiscount", totalPriceAfterDiscount);
+            request.setAttribute("totalPrice", totalPrice);
+        }
+    }
+
+    private void updateProfile(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        clearMessages();
+        String username = request.getParameter("username");
+        String phoneNumber = request.getParameter("phoneNumber");
+        String gender = request.getParameter("gender");
+        boolean genderBool = gender.equals("Male");
+        String address = request.getParameter("address");
+
+        HttpSession session = request.getSession();
+        Account me = (Account) session.getAttribute("accountLoggedIn");
+        processCart(request, me);
+        
+        cd.updateAccountInformation(me.getAccountID(), username, phoneNumber, genderBool, address);
+        
+        addMessages(request);
+        Account profile = cd.getAccountInformationByAccountID(me.getAccountID());
+        request.setAttribute("profile", profile);
+        request.getRequestDispatcher("/views/CustomerProfile.jsp").forward(request, response);
+
+    }
+    
+    private void changePassword(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        clearMessages();
+        
+         HttpSession session = request.getSession();
+        Account me = (Account) session.getAttribute("accountLoggedIn");
+        processCart(request, me);
+        
+        String currentPassword = request.getParameter("currentPassword");
+        String newPassword = request.getParameter("newPassword");
+        String confirmNewPassword = request.getParameter("confirmNewPassword");
+        
+        String checkPassword = cd.getPasswordByAccountID(me.getAccountID());
+        if(checkPassword.equals(currentPassword)){
+            if(newPassword.equals(confirmNewPassword)){
+                cd.addNewPasswordForAccountByEmail(newPassword, me.getEmail());
+                successMessages.add("Password changed successfully.");
+            } else {
+                request.setAttribute("newPassword", newPassword);
+                request.setAttribute("currentPassword", currentPassword);
+                warningMessages.add("New password and confirm password do not match.");
+            }
+        } else {
+            request.setAttribute("currentPassword", currentPassword);
+            warningMessages.add("Current password is incorrect.");
+        }
+        addMessages(request);
+        Account profile = cd.getAccountInformationByAccountID(me.getAccountID());
+        request.setAttribute("profile", profile);
+        request.getRequestDispatcher("/views/CustomerProfile.jsp").forward(request, response);
+        
     }
 
 }

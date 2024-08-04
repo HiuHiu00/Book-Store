@@ -13,4 +13,6 @@ public class Account {
     private String Email;
     private int RoleID;
     private String VerifyCode;
+    
+    private Account_Detail accountDetail;
 }

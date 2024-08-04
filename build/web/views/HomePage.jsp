@@ -96,7 +96,7 @@
                                 <div class="dropdown-menu m-0 bg-secondary rounded-0">
                                     <c:choose>
                                         <c:when test="${not empty sessionScope.isLoggedIn}">          
-                                            <a href="#" class="dropdown-item">Profile</a>
+                                            <a href="authent?action=profile" class="dropdown-item">Profile</a>
                                             <a href="authent?action=logout" class="dropdown-item">Logout</a>
                                         </c:when>
                                         <c:otherwise>
@@ -212,7 +212,9 @@
                 </div>
             </div>
             <!--Modal End--> 
-
+            
+            
+            
             <!-- Hero Start -->
             <div class="container-fluid py-5 mb-5 hero-header">
                 <div class="container py-5">
